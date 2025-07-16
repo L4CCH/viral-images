@@ -18,7 +18,7 @@ const imageClusters = [
     similarImages: [
       {
         id: 2,
-        src: "/placeholder.svg?height=300&width=400",
+        src: "https://tile.loc.gov/image-services/iiif/service:ndnp:ohi:batch_ohi_ingstad_ver01:data:sn85026051:00296027029:1850082401:0053/pct:43.34,61.78,13.23,11.25/pct:100/0/default.jpg",
         alt: "Early Presidential Debate",
         date: "October 21, 1960",
         publication: "The Morning Post",
