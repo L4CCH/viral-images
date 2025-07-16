@@ -1,0 +1,11 @@
+datasets==4.0.0
+huggingface-hub==0.33.4
+marimo==0.14.11
+nltk==3.9.1
+notebook==7.4.4
+numpy==2.3.1
+pandas==2.3.1
+requests==2.32.4
+scikit-learn==1.7.0
+scipy==1.16.0
+tqdm==4.67.1
