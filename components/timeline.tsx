@@ -193,12 +193,8 @@ export function Timeline({ onDateRangeChange, startYear, endYear }: TimelineProp
         </div>
 
         {/* Range slider control */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Start Year: {startYear}</span>
-              <span>End Year: {endYear}</span>
-            </div>
+        <div className="space-y-2">
+            
             <Slider
               value={[startYear, endYear]}
               min={minYear}
@@ -207,7 +203,6 @@ export function Timeline({ onDateRangeChange, startYear, endYear }: TimelineProp
               onValueChange={handleRangeChange}
               className="w-full"
             />
-          </div>
         </div>
 
         {/* Quick preset buttons */}
@@ -224,8 +219,14 @@ export function Timeline({ onDateRangeChange, startYear, endYear }: TimelineProp
           <Button variant="outline" size="sm" onClick={() => onDateRangeChange(2000, 2024)}>
             21st Century
           </Button>
+          <Button variant="outline" size="sm" onClick={() => onDateRangeChange(1861, 1865)}>
+            U.S. Civil War
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => onDateRangeChange(1914, 1918)}>
+            WW I
+          </Button>
           <Button variant="outline" size="sm" onClick={() => onDateRangeChange(1939, 1945)}>
-            WWII Era
+            WW II
           </Button>
           <Button variant="outline" size="sm" onClick={() => onDateRangeChange(1960, 1970)}>
             1960s
