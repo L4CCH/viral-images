@@ -40,5 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# python
+__pycache__/
 .ipynb_checkpoints/
-/scripts/datasets/*
+/scripts/data/*/
+__marimo__
+venv
