@@ -49,6 +49,7 @@ export default function ClusterPage({ params }: { params: Promise<{ id: string }
       clusterKey={clusterKey}
       initialStartYear={clusterData.startYear}
       initialEndYear={clusterData.endYear}
+      clusters={clustersData}
     />
   )
 }

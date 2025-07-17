@@ -10,9 +10,10 @@ interface ClusterDetailsClientProps {
   clusterKey: string;
   initialStartYear: number;
   initialEndYear: number;
+  clusters: { [key: string]: string[] };
 }
 
-export function ClusterDetailsClient({ clusterKey, initialStartYear, initialEndYear }: ClusterDetailsClientProps) {
+export function ClusterDetailsClient({ clusterKey, initialStartYear, initialEndYear, clusters }: ClusterDetailsClientProps) {
   const [startYear, setStartYear] = useState(initialStartYear);
   const [endYear, setEndYear] = useState(initialEndYear);
 
@@ -30,6 +31,7 @@ export function ClusterDetailsClient({ clusterKey, initialStartYear, initialEndY
         endYear={endYear}
         activeStartYear={initialStartYear}
         activeEndYear={initialEndYear}
+        clusters={clusters}
       />
       <Link href="/">
         <Button className="mb-4">
