@@ -1,0 +1,809 @@
+[
+  {
+    "pub_date": "1855-08-30",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_kent_ver02%2Fdata%2Fsn87075163%2F00280774947%2F1855083001%2F0154.jp2/pct:37.58,7.68,27.32,20.81/pct:100/0/default.jpg",
+    "score": 0.9800493717,
+    "place_of_publication": "McArthur, Vinton County, Ohio",
+    "geographic_coverage": [
+      "Ohio--Vinton--McArthur"
+    ],
+    "name": "M'arthur Democrat.",
+    "publisher": "E.A. Bratton",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_kent_ver02/data/sn87075163/00280774947/1855083001/0154/001_4_98.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_kent_ver02/data/sn87075163/00280774947/1855083001/0154.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_kent_ver02%2Fdata%2Fsn87075163%2F00280774947%2F1855083001%2F0154.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_kent_ver02/data/sn87075163/00280774947/1855083001/0154/001_4_98.jpg",
+    "page_seq_num": 154,
+    "edition_seq_num": 1,
+    "batch": "ohi_kent_ver02",
+    "lccn": "sn87075163",
+    "box": [
+      0.3758229376,
+      0.0767014348,
+      0.6489974827,
+      0.2847876451
+    ]
+  },
+  {
+    "pub_date": "1855-02-15",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_drake_ver01%2Fdata%2Fsn85026105%2F00296028046%2F1855021501%2F0498.jp2/pct:32.25,7.6,25.22,21.12/pct:100/0/default.jpg",
+    "score": 0.9063785672,
+    "place_of_publication": "Lancaster, Ohio",
+    "geographic_coverage": [
+      "Ohio--Fairfield--Lancaster"
+    ],
+    "name": "American Lancaster gazette. [volume]",
+    "publisher": "Tom S. Slaughter",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_drake_ver01/data/sn85026105/00296028046/1855021501/0498/000_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_drake_ver01/data/sn85026105/00296028046/1855021501/0498.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_drake_ver01%2Fdata%2Fsn85026105%2F00296028046%2F1855021501%2F0498.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_drake_ver01/data/sn85026105/00296028046/1855021501/0498/000_4_90.jpg",
+    "page_seq_num": 498,
+    "edition_seq_num": 1,
+    "batch": "ohi_drake_ver01",
+    "lccn": "sn85026105",
+    "box": [
+      0.3225615347,
+      0.0759003983,
+      0.5747231461,
+      0.2870005797
+    ]
+  },
+  {
+    "pub_date": "1855-09-25",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_drake_ver01%2Fdata%2Fsn85038183%2F00296027534%2F1855092501%2F0282.jp2/pct:68.55,4.35,26.44,21.75/pct:100/0/default.jpg",
+    "score": 0.9032495618,
+    "place_of_publication": "Pomeroy [Ohio]",
+    "geographic_coverage": [
+      "Ohio--Meigs--Pomeroy"
+    ],
+    "name": "Meigs County telegraph. [volume]",
+    "publisher": "J. Hughes",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_drake_ver01/data/sn85038183/00296027534/1855092501/0282/000_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_drake_ver01/data/sn85038183/00296027534/1855092501/0282.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_drake_ver01%2Fdata%2Fsn85038183%2F00296027534%2F1855092501%2F0282.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_drake_ver01/data/sn85038183/00296027534/1855092501/0282/000_4_90.jpg",
+    "page_seq_num": 282,
+    "edition_seq_num": 1,
+    "batch": "ohi_drake_ver01",
+    "lccn": "sn85038183",
+    "box": [
+      0.6855764893,
+      0.0434212904,
+      0.9498934272,
+      0.2609142418
+    ]
+  },
+  {
+    "pub_date": "1855-10-02",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_drake_ver01%2Fdata%2Fsn84028880%2F00296027558%2F1855100201%2F0519.jp2/pct:67.41,4.34,27.72,22.34/pct:100/0/default.jpg",
+    "score": 0.9000527859,
+    "place_of_publication": "Ironton, Ohio",
+    "geographic_coverage": [
+      "Ohio--Lawrence--Ironton",
+      "Ohio--Scioto--Portsmouth"
+    ],
+    "name": "Spirit of the times. [volume]",
+    "publisher": "Benjamin F. Cory",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_drake_ver01/data/sn84028880/00296027558/1855100201/0519/000_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_drake_ver01/data/sn84028880/00296027558/1855100201/0519.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_drake_ver01%2Fdata%2Fsn84028880%2F00296027558%2F1855100201%2F0519.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_drake_ver01/data/sn84028880/00296027558/1855100201/0519/000_4_90.jpg",
+    "page_seq_num": 519,
+    "edition_seq_num": 1,
+    "batch": "ohi_drake_ver01",
+    "lccn": "sn84028880",
+    "box": [
+      0.6741559259,
+      0.0433226491,
+      0.951315255,
+      0.2666459112
+    ]
+  },
+  {
+    "pub_date": "1855-02-24",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855022401%2F0238.jp2/pct:67.3,21.77,21.19,24.17/pct:100/0/default.jpg",
+    "score": 0.9081315398,
+    "place_of_publication": "Burlington [Iowa]",
+    "geographic_coverage": [
+      "Iowa--Des Moines--Burlington"
+    ],
+    "name": "Burlington tri-weekly hawk-eye. [volume]",
+    "publisher": "John Pierson, Sr.",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_abra_ver01/data/sn85049817/00415668879/1855022401/0238/001_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_abra_ver01/data/sn85049817/00415668879/1855022401/0238.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855022401%2F0238.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_abra_ver01/data/sn85049817/00415668879/1855022401/0238/001_4_90.jpg",
+    "page_seq_num": 238,
+    "edition_seq_num": 1,
+    "batch": "iahi_abra_ver01",
+    "lccn": "sn85049817",
+    "box": [
+      0.6730175826,
+      0.2176759473,
+      0.8848853348,
+      0.459282949
+    ]
+  },
+  {
+    "pub_date": "1855-02-22",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855022201%2F0234.jp2/pct:67.76,21.99,23.15,24.32/pct:100/0/default.jpg",
+    "score": 0.9035520554,
+    "place_of_publication": "Burlington [Iowa]",
+    "geographic_coverage": [
+      "Iowa--Des Moines--Burlington"
+    ],
+    "name": "Burlington tri-weekly hawk-eye. [volume]",
+    "publisher": "John Pierson, Sr.",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_abra_ver01/data/sn85049817/00415668879/1855022201/0234/000_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_abra_ver01/data/sn85049817/00415668879/1855022201/0234.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855022201%2F0234.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_abra_ver01/data/sn85049817/00415668879/1855022201/0234/000_4_90.jpg",
+    "page_seq_num": 234,
+    "edition_seq_num": 1,
+    "batch": "iahi_abra_ver01",
+    "lccn": "sn85049817",
+    "box": [
+      0.6776201122,
+      0.2198518342,
+      0.9091132954,
+      0.4629552358
+    ]
+  },
+  {
+    "pub_date": "1855-01-11",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855011101%2F0162.jp2/pct:68.55,22.36,26.41,24.61/pct:100/0/default.jpg",
+    "score": 0.9471031427,
+    "place_of_publication": "Burlington [Iowa]",
+    "geographic_coverage": [
+      "Iowa--Des Moines--Burlington"
+    ],
+    "name": "Burlington tri-weekly hawk-eye. [volume]",
+    "publisher": "John Pierson, Sr.",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_abra_ver01/data/sn85049817/00415668879/1855011101/0162/000_4_94.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_abra_ver01/data/sn85049817/00415668879/1855011101/0162.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855011101%2F0162.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_abra_ver01/data/sn85049817/00415668879/1855011101/0162/000_4_94.jpg",
+    "page_seq_num": 162,
+    "edition_seq_num": 1,
+    "batch": "iahi_abra_ver01",
+    "lccn": "sn85049817",
+    "box": [
+      0.685577421,
+      0.2235740688,
+      0.949642192,
+      0.4696445712
+    ]
+  },
+  {
+    "pub_date": "1855-02-01",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855020101%2F0198.jp2/pct:67.41,24.48,24.66,24.59/pct:100/0/default.jpg",
+    "score": 0.9545709491,
+    "place_of_publication": "Burlington [Iowa]",
+    "geographic_coverage": [
+      "Iowa--Des Moines--Burlington"
+    ],
+    "name": "Burlington tri-weekly hawk-eye. [volume]",
+    "publisher": "John Pierson, Sr.",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_abra_ver01/data/sn85049817/00415668879/1855020101/0198/000_4_95.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_abra_ver01/data/sn85049817/00415668879/1855020101/0198.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_abra_ver01%2Fdata%2Fsn85049817%2F00415668879%2F1855020101%2F0198.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_abra_ver01/data/sn85049817/00415668879/1855020101/0198/000_4_95.jpg",
+    "page_seq_num": 198,
+    "edition_seq_num": 1,
+    "batch": "iahi_abra_ver01",
+    "lccn": "sn85049817",
+    "box": [
+      0.6741103985,
+      0.2447698783,
+      0.9206864503,
+      0.4906390556
+    ]
+  },
+  {
+    "pub_date": "1856-05-10",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_chet_ver01%2Fdata%2Fsn85038518%2F00200293216%2F1856051001%2F0452.jp2/pct:19.11,10.25,26.06,10.1/pct:100/0/default.jpg",
+    "score": 0.9061480165,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "Nashville union and American. [volume]",
+    "publisher": "John L. Marling & Co.",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_chet_ver01/data/sn85038518/00200293216/1856051001/0452/001_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_chet_ver01/data/sn85038518/00200293216/1856051001/0452.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_chet_ver01%2Fdata%2Fsn85038518%2F00200293216%2F1856051001%2F0452.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_chet_ver01/data/sn85038518/00200293216/1856051001/0452/001_4_90.jpg",
+    "page_seq_num": 452,
+    "edition_seq_num": 1,
+    "batch": "tu_chet_ver01",
+    "lccn": "sn85038518",
+    "box": [
+      0.1911229361,
+      0.1024525531,
+      0.451656826,
+      0.2033841419
+    ]
+  },
+  {
+    "pub_date": "1856-05-03",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_chet_ver01%2Fdata%2Fsn85038518%2F00200293216%2F1856050301%2F0428.jp2/pct:19.61,9.84,25.34,9.63/pct:100/0/default.jpg",
+    "score": 0.9151200652,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "Nashville union and American. [volume]",
+    "publisher": "John L. Marling & Co.",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_chet_ver01/data/sn85038518/00200293216/1856050301/0428/001_4_91.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_chet_ver01/data/sn85038518/00200293216/1856050301/0428.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_chet_ver01%2Fdata%2Fsn85038518%2F00200293216%2F1856050301%2F0428.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_chet_ver01/data/sn85038518/00200293216/1856050301/0428/001_4_91.jpg",
+    "page_seq_num": 428,
+    "edition_seq_num": 1,
+    "batch": "tu_chet_ver01",
+    "lccn": "sn85038518",
+    "box": [
+      0.1961540982,
+      0.0983984658,
+      0.4495536551,
+      0.1946221898
+    ]
+  },
+  {
+    "pub_date": "1856-06-10",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_chet_ver01%2Fdata%2Fsn85038518%2F00200293216%2F1856061001%2F0556.jp2/pct:19.16,10.84,25.45,9.75/pct:100/0/default.jpg",
+    "score": 0.9075735807,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "Nashville union and American. [volume]",
+    "publisher": "John L. Marling & Co.",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_chet_ver01/data/sn85038518/00200293216/1856061001/0556/000_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_chet_ver01/data/sn85038518/00200293216/1856061001/0556.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_chet_ver01%2Fdata%2Fsn85038518%2F00200293216%2F1856061001%2F0556.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_chet_ver01/data/sn85038518/00200293216/1856061001/0556/000_4_90.jpg",
+    "page_seq_num": 556,
+    "edition_seq_num": 1,
+    "batch": "tu_chet_ver01",
+    "lccn": "sn85038518",
+    "box": [
+      0.1916329256,
+      0.1083642828,
+      0.4460878515,
+      0.2058454118
+    ]
+  },
+  {
+    "pub_date": "1858-03-20",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/wvu_canada_ver01%2Fdata%2Fsn86092535%2F00202190613%2F1858032001%2F0266.jp2/pct:36.66,0.95,30.78,28.94/pct:100/0/default.jpg",
+    "score": 0.982372582,
+    "place_of_publication": "Wheeling, Va. [W. Va.]",
+    "geographic_coverage": [
+      "West Virginia--Ohio--Wheeling"
+    ],
+    "name": "Wheeling daily intelligencer. [volume]",
+    "publisher": "Swearingen & Taylor",
+    "url": "https://news-navigator.labs.loc.gov/data/wvu_canada_ver01/data/sn86092535/00202190613/1858032001/0266/000_4_98.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/wvu_canada_ver01/data/sn86092535/00202190613/1858032001/0266.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/wvu_canada_ver01%2Fdata%2Fsn86092535%2F00202190613%2F1858032001%2F0266.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "wvu_canada_ver01/data/sn86092535/00202190613/1858032001/0266/000_4_98.jpg",
+    "page_seq_num": 266,
+    "edition_seq_num": 1,
+    "batch": "wvu_canada_ver01",
+    "lccn": "sn86092535",
+    "box": [
+      0.3666027343,
+      0.0094913035,
+      0.6743727692,
+      0.2988467967
+    ]
+  },
+  {
+    "pub_date": "1858-03-31",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_julian_ver02%2Fdata%2Fsn84028794%2F00296026682%2F1858033101%2F0586.jp2/pct:3.78,16.18,37.74,27.03/pct:100/0/default.jpg",
+    "score": 0.9372611046,
+    "place_of_publication": "Cadiz, Ohio",
+    "geographic_coverage": [
+      "Ohio--Harrison--Cadiz"
+    ],
+    "name": "The Cadiz Democratic sentinel. [volume]",
+    "publisher": "C.N. Allen",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_julian_ver02/data/sn84028794/00296026682/1858033101/0586/000_4_93.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_julian_ver02/data/sn84028794/00296026682/1858033101/0586.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_julian_ver02%2Fdata%2Fsn84028794%2F00296026682%2F1858033101%2F0586.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_julian_ver02/data/sn84028794/00296026682/1858033101/0586/000_4_93.jpg",
+    "page_seq_num": 586,
+    "edition_seq_num": 1,
+    "batch": "ohi_julian_ver02",
+    "lccn": "sn84028794",
+    "box": [
+      0.0378463679,
+      0.1617355642,
+      0.4152227664,
+      0.4319570354
+    ]
+  },
+  {
+    "pub_date": "1858-03-25",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_feste_ver01%2Fdata%2Fsn85026241%2F00280775381%2F1858032501%2F0283.jp2/pct:52.2,5.01,22.62,22.38/pct:100/0/default.jpg",
+    "score": 0.9543947577,
+    "place_of_publication": "St. Clairsville, Ohio",
+    "geographic_coverage": [
+      "Ohio--Belmont--Saint Clairsville"
+    ],
+    "name": "Belmont chronicle. [volume]",
+    "publisher": "B.R. Cowen",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_feste_ver01/data/sn85026241/00280775381/1858032501/0283/000_4_95.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_feste_ver01/data/sn85026241/00280775381/1858032501/0283.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_feste_ver01%2Fdata%2Fsn85026241%2F00280775381%2F1858032501%2F0283.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_feste_ver01/data/sn85026241/00280775381/1858032501/0283/000_4_95.jpg",
+    "page_seq_num": 283,
+    "edition_seq_num": 1,
+    "batch": "ohi_feste_ver01",
+    "lccn": "sn85026241",
+    "box": [
+      0.5220965095,
+      0.0500959677,
+      0.7482655794,
+      0.2738189697
+    ]
+  },
+  {
+    "pub_date": "1864-05-27",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864052701%2F0513.jp2/pct:37.74,4.29,23.17,23.54/pct:100/0/default.jpg",
+    "score": 0.9304528832,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864052701/0513/003_4_93.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864052701/0513.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864052701%2F0513.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864052701/0513/003_4_93.jpg",
+    "page_seq_num": 513,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3774316879,
+      0.0428191385,
+      0.6090441144,
+      0.2781446114
+    ]
+  },
+  {
+    "pub_date": "1864-05-14",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864051401%2F0469.jp2/pct:37.07,5.01,22.47,22.36/pct:100/0/default.jpg",
+    "score": 0.9038097262,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864051401/0469/006_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864051401/0469.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864051401%2F0469.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864051401/0469/006_4_90.jpg",
+    "page_seq_num": 469,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.370774183,
+      0.0500964249,
+      0.5953847828,
+      0.2736637106
+    ]
+  },
+  {
+    "pub_date": "1864-04-17",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864041701%2F0375.jp2/pct:37.46,5.55,22.54,22.59/pct:100/0/default.jpg",
+    "score": 0.9633662701,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864041701/0375/002_4_96.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864041701/0375.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864041701%2F0375.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864041701/0375/002_4_96.jpg",
+    "page_seq_num": 375,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3746753877,
+      0.055420265,
+      0.6000326472,
+      0.2812520766
+    ]
+  },
+  {
+    "pub_date": "1864-04-21",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864042101%2F0387.jp2/pct:37.56,6.25,22.66,22.83/pct:100/0/default.jpg",
+    "score": 0.9392030835,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864042101/0387/002_4_93.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864042101/0387.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864042101%2F0387.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864042101/0387/002_4_93.jpg",
+    "page_seq_num": 387,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3756694746,
+      0.0624656974,
+      0.6022011001,
+      0.2906728723
+    ]
+  },
+  {
+    "pub_date": "1864-04-19",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864041901%2F0379.jp2/pct:37.53,5.76,22.82,22.84/pct:100/0/default.jpg",
+    "score": 0.939428091,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864041901/0379/003_4_93.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864041901/0379.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864041901%2F0379.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864041901/0379/003_4_93.jpg",
+    "page_seq_num": 379,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3753861726,
+      0.0575888705,
+      0.6034863854,
+      0.2859047673
+    ]
+  },
+  {
+    "pub_date": "1864-04-30",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864043001%2F0420.jp2/pct:36.51,3.69,22.5,22.9/pct:100/0/default.jpg",
+    "score": 0.9717109799,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864043001/0420/002_4_97.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864043001/0420.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864043001%2F0420.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864043001/0420/002_4_97.jpg",
+    "page_seq_num": 420,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3651361979,
+      0.036839876,
+      0.5901274345,
+      0.2658219423
+    ]
+  },
+  {
+    "pub_date": "1864-03-12",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864031201%2F0250.jp2/pct:37.35,3.2,22.99,23.63/pct:100/0/default.jpg",
+    "score": 0.911008656,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864031201/0250/007_4_91.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864031201/0250.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864031201%2F0250.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864031201/0250/007_4_91.jpg",
+    "page_seq_num": 250,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3735190796,
+      0.0319881543,
+      0.6033779125,
+      0.2682473701
+    ]
+  },
+  {
+    "pub_date": "1864-04-27",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864042701%2F0407.jp2/pct:37.31,5.07,23.02,22.95/pct:100/0/default.jpg",
+    "score": 0.9584847689,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864042701/0407/002_4_95.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864042701/0407.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864042701%2F0407.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864042701/0407/002_4_95.jpg",
+    "page_seq_num": 407,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3731193288,
+      0.050615878,
+      0.6033040365,
+      0.2800361455
+    ]
+  },
+  {
+    "pub_date": "1864-06-25",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864062501%2F0611.jp2/pct:39.1,6.25,22.37,22.83/pct:100/0/default.jpg",
+    "score": 0.932289958,
+    "place_of_publication": "Nashville, Tenn.",
+    "geographic_coverage": [
+      "Tennessee--Davidson--Nashville"
+    ],
+    "name": "The Nashville daily union. [volume]",
+    "publisher": "Published by an Association of Printers",
+    "url": "https://news-navigator.labs.loc.gov/data/tu_grady_ver01/data/sn83025718/00200293770/1864062501/0611/002_4_93.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/tu_grady_ver01/data/sn83025718/00200293770/1864062501/0611.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/tu_grady_ver01%2Fdata%2Fsn83025718%2F00200293770%2F1864062501%2F0611.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "tu_grady_ver01/data/sn83025718/00200293770/1864062501/0611/002_4_93.jpg",
+    "page_seq_num": 611,
+    "edition_seq_num": 1,
+    "batch": "tu_grady_ver01",
+    "lccn": "sn83025718",
+    "box": [
+      0.3910842027,
+      0.0624024253,
+      0.6147695154,
+      0.290642242
+    ]
+  },
+  {
+    "pub_date": "1866-07-11",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_ariel_ver02%2Fdata%2Fsn84028385%2F0023728687A%2F1866071101%2F0199.jp2/pct:74.33,5.62,21.91,28.54/pct:100/0/default.jpg",
+    "score": 0.9524869919,
+    "place_of_publication": "Warren, Ohio",
+    "geographic_coverage": [
+      "Ohio--Trumbull--Warren"
+    ],
+    "name": "Western Reserve chronicle. [volume]",
+    "publisher": "Hapgood & Adams",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_ariel_ver02/data/sn84028385/0023728687A/1866071101/0199/001_4_95.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_ariel_ver02/data/sn84028385/0023728687A/1866071101/0199.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_ariel_ver02%2Fdata%2Fsn84028385%2F0023728687A%2F1866071101%2F0199.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_ariel_ver02/data/sn84028385/0023728687A/1866071101/0199/001_4_95.jpg",
+    "page_seq_num": 199,
+    "edition_seq_num": 1,
+    "batch": "ohi_ariel_ver02",
+    "lccn": "sn84028385",
+    "box": [
+      0.7433679471,
+      0.0561750044,
+      0.9624363151,
+      0.3415105424
+    ]
+  },
+  {
+    "pub_date": "1866-07-25",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_ariel_ver02%2Fdata%2Fsn84028385%2F0023728687A%2F1866072501%2F0209.jp2/pct:73.88,4.67,22.44,29.47/pct:100/0/default.jpg",
+    "score": 0.9289729595,
+    "place_of_publication": "Warren, Ohio",
+    "geographic_coverage": [
+      "Ohio--Trumbull--Warren"
+    ],
+    "name": "Western Reserve chronicle. [volume]",
+    "publisher": "Hapgood & Adams",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_ariel_ver02/data/sn84028385/0023728687A/1866072501/0209/006_4_92.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_ariel_ver02/data/sn84028385/0023728687A/1866072501/0209.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_ariel_ver02%2Fdata%2Fsn84028385%2F0023728687A%2F1866072501%2F0209.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_ariel_ver02/data/sn84028385/0023728687A/1866072501/0209/006_4_92.jpg",
+    "page_seq_num": 209,
+    "edition_seq_num": 1,
+    "batch": "ohi_ariel_ver02",
+    "lccn": "sn84028385",
+    "box": [
+      0.7388621822,
+      0.0466742241,
+      0.9632587433,
+      0.3413546702
+    ]
+  },
+  {
+    "pub_date": "1866-08-01",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_ariel_ver02%2Fdata%2Fsn84028385%2F0023728687A%2F1866080101%2F0213.jp2/pct:73.08,4.57,22.54,29.12/pct:100/0/default.jpg",
+    "score": 0.9621763229,
+    "place_of_publication": "Warren, Ohio",
+    "geographic_coverage": [
+      "Ohio--Trumbull--Warren"
+    ],
+    "name": "Western Reserve chronicle. [volume]",
+    "publisher": "Hapgood & Adams",
+    "url": "https://news-navigator.labs.loc.gov/data/ohi_ariel_ver02/data/sn84028385/0023728687A/1866080101/0213/000_4_96.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/ohi_ariel_ver02/data/sn84028385/0023728687A/1866080101/0213.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/ohi_ariel_ver02%2Fdata%2Fsn84028385%2F0023728687A%2F1866080101%2F0213.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "ohi_ariel_ver02/data/sn84028385/0023728687A/1866080101/0213/000_4_96.jpg",
+    "page_seq_num": 213,
+    "edition_seq_num": 1,
+    "batch": "ohi_ariel_ver02",
+    "lccn": "sn84028385",
+    "box": [
+      0.7308233933,
+      0.0456336618,
+      0.9562185524,
+      0.3368287337
+    ]
+  },
+  {
+    "pub_date": "1869-05-27",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_jigglypuff_ver01%2Fdata%2Fsn84027352%2F00279528748%2F1869052701%2F0420.jp2/pct:53.17,5.89,35.72,25.26/pct:100/0/default.jpg",
+    "score": 0.9000431299,
+    "place_of_publication": "Ottumwa, Iowa",
+    "geographic_coverage": [
+      "Iowa--Wapello--Ottumwa"
+    ],
+    "name": "The weekly Ottumwa courier. [volume]",
+    "publisher": "J.W. & G.P. Norris",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869052701/0420/006_4_90.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869052701/0420.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_jigglypuff_ver01%2Fdata%2Fsn84027352%2F00279528748%2F1869052701%2F0420.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869052701/0420/006_4_90.jpg",
+    "page_seq_num": 420,
+    "edition_seq_num": 1,
+    "batch": "iahi_jigglypuff_ver01",
+    "lccn": "sn84027352",
+    "box": [
+      0.5317117202,
+      0.0588902938,
+      0.8888433047,
+      0.3114550678
+    ]
+  },
+  {
+    "pub_date": "1869-06-17",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_jigglypuff_ver01%2Fdata%2Fsn84027352%2F00279528748%2F1869061701%2F0432.jp2/pct:55.49,6.05,38.73,25.83/pct:100/0/default.jpg",
+    "score": 0.9253201485,
+    "place_of_publication": "Ottumwa, Iowa",
+    "geographic_coverage": [
+      "Iowa--Wapello--Ottumwa"
+    ],
+    "name": "The weekly Ottumwa courier. [volume]",
+    "publisher": "J.W. & G.P. Norris",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869061701/0432/009_4_92.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869061701/0432.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_jigglypuff_ver01%2Fdata%2Fsn84027352%2F00279528748%2F1869061701%2F0432.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869061701/0432/009_4_92.jpg",
+    "page_seq_num": 432,
+    "edition_seq_num": 1,
+    "batch": "iahi_jigglypuff_ver01",
+    "lccn": "sn84027352",
+    "box": [
+      0.5549904152,
+      0.0604657811,
+      0.9422425474,
+      0.3187492526
+    ]
+  },
+  {
+    "pub_date": "1869-07-01",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_jigglypuff_ver01%2Fdata%2Fsn84027352%2F00279528748%2F1869070101%2F0442.jp2/pct:56.48,7.8,35.57,24.94/pct:100/0/default.jpg",
+    "score": 0.9300802946,
+    "place_of_publication": "Ottumwa, Iowa",
+    "geographic_coverage": [
+      "Iowa--Wapello--Ottumwa"
+    ],
+    "name": "The weekly Ottumwa courier. [volume]",
+    "publisher": "J.W. & G.P. Norris",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869070101/0442/002_4_93.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869070101/0442.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_jigglypuff_ver01%2Fdata%2Fsn84027352%2F00279528748%2F1869070101%2F0442.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_jigglypuff_ver01/data/sn84027352/00279528748/1869070101/0442/002_4_93.jpg",
+    "page_seq_num": 442,
+    "edition_seq_num": 1,
+    "batch": "iahi_jigglypuff_ver01",
+    "lccn": "sn84027352",
+    "box": [
+      0.5648412248,
+      0.0779805969,
+      0.9205006338,
+      0.3273698463
+    ]
+  },
+  {
+    "pub_date": "1871-11-10",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_electabuzz_ver01%2Fdata%2Fsn84027186%2F0027952889A%2F1871111001%2F0408.jp2/pct:65.74,3.77,30.26,20.41/pct:100/0/default.jpg",
+    "score": 0.9254066944,
+    "place_of_publication": "Independence, Iowa",
+    "geographic_coverage": [
+      "Iowa--Buchanan--Independence"
+    ],
+    "name": "Buchanan County bulletin. [volume]",
+    "publisher": "Wm. Toman",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_electabuzz_ver01/data/sn84027186/0027952889A/1871111001/0408/003_4_92.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_electabuzz_ver01/data/sn84027186/0027952889A/1871111001/0408.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_electabuzz_ver01%2Fdata%2Fsn84027186%2F0027952889A%2F1871111001%2F0408.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_electabuzz_ver01/data/sn84027186/0027952889A/1871111001/0408/003_4_92.jpg",
+    "page_seq_num": 408,
+    "edition_seq_num": 1,
+    "batch": "iahi_electabuzz_ver01",
+    "lccn": "sn84027186",
+    "box": [
+      0.657482553,
+      0.0376826784,
+      0.9600646107,
+      0.2417653784
+    ]
+  },
+  {
+    "pub_date": "1871-11-03",
+    "prediction_section_iiif_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_electabuzz_ver01%2Fdata%2Fsn84027186%2F0027952889A%2F1871110301%2F0404.jp2/pct:64.82,3.43,32.16,20.57/pct:100/0/default.jpg",
+    "score": 0.9690563083,
+    "place_of_publication": "Independence, Iowa",
+    "geographic_coverage": [
+      "Iowa--Buchanan--Independence"
+    ],
+    "name": "Buchanan County bulletin. [volume]",
+    "publisher": "Wm. Toman",
+    "url": "https://news-navigator.labs.loc.gov/data/iahi_electabuzz_ver01/data/sn84027186/0027952889A/1871110301/0404/002_4_96.jpg",
+    "page_url": "https://chroniclingamerica.loc.gov/data/batches/iahi_electabuzz_ver01/data/sn84027186/0027952889A/1871110301/0404.jp2",
+    "iiif_full_url": "https://chroniclingamerica.loc.gov/iiif/2/iahi_electabuzz_ver01%2Fdata%2Fsn84027186%2F0027952889A%2F1871110301%2F0404.jp2/full/full/0/default.jpg",
+    "predicted_type": "cartoon",
+    "filepath": "iahi_electabuzz_ver01/data/sn84027186/0027952889A/1871110301/0404/002_4_96.jpg",
+    "page_seq_num": 404,
+    "edition_seq_num": 1,
+    "batch": "iahi_electabuzz_ver01",
+    "lccn": "sn84027186",
+    "box": [
+      0.6482290992,
+      0.0342956962,
+      0.969826003,
+      0.2399215646
+    ]
+  }
+]
