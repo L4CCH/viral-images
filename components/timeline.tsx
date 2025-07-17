@@ -10,56 +10,44 @@ interface TimelineProps {
   onDateRangeChange: (startYear: number, endYear: number) => void
   startYear: number
   endYear: number
+  activeStartYear?: number
+  activeEndYear?: number
+  clusters: { [key: string]: string[] }
 }
 
-export function Timeline({ onDateRangeChange, startYear, endYear }: TimelineProps) {
+export function Timeline({ onDateRangeChange, startYear, endYear, activeStartYear, activeEndYear, clusters }: TimelineProps) {
   const [zoomLevel, setZoomLevel] = useState(1)
 
   const minYear = 1700
   const maxYear = 2024
 
-  // Sample data for histogram - number of images per year
   const getImageCountsPerYear = () => {
     const counts: { [year: number]: number } = {}
 
-    // Sample data with varying counts per year
-    const sampleData = [
-      { year: 1776, count: 3 },
-      { year: 1777, count: 1 },
-      { year: 1778, count: 2 },
-      { year: 1860, count: 2 },
-      { year: 1861, count: 8 },
-      { year: 1862, count: 12 },
-      { year: 1863, count: 6 },
-      { year: 1864, count: 4 },
-      { year: 1865, count: 3 },
-      { year: 1917, count: 4 },
-      { year: 1918, count: 15 },
-      { year: 1919, count: 8 },
-      { year: 1941, count: 3 },
-      { year: 1942, count: 7 },
-      { year: 1943, count: 9 },
-      { year: 1944, count: 11 },
-      { year: 1945, count: 12 },
-      { year: 1946, count: 5 },
-      { year: 1963, count: 2 },
-      { year: 1968, count: 4 },
-      { year: 1969, count: 7 },
-      { year: 1970, count: 3 },
-      { year: 1989, count: 4 },
-      { year: 1990, count: 2 },
-      { year: 2001, count: 18 },
-      { year: 2002, count: 8 },
-      { year: 2003, count: 4 },
-      { year: 2008, count: 3 },
-      { year: 2012, count: 5 },
-      { year: 2016, count: 4 },
-      { year: 2020, count: 6 },
-      { year: 2021, count: 2 },
-    ]
+    const validClusters = clusters || {};
 
-    sampleData.forEach(({ year, count }) => {
-      counts[year] = count
+    Object.values(validClusters).forEach((imagePaths) => {
+      if (imagePaths.length === 0) return
+
+      let minClusterYear = Infinity
+      let maxClusterYear = -Infinity
+
+      imagePaths.forEach((path) => {
+        const parts = path.split('/')
+        const datePart = parts[parts.length - 3] // e.g., '1855083001'
+        const year = parseInt(datePart.substring(0, 4), 10)
+
+        if (!isNaN(year)) {
+          minClusterYear = Math.min(minClusterYear, year)
+          maxClusterYear = Math.max(maxClusterYear, year)
+        }
+      })
+
+      if (minClusterYear !== Infinity && maxClusterYear !== -Infinity) {
+        for (let year = minClusterYear; year <= maxClusterYear; year++) {
+          counts[year] = (counts[year] || 0) + 1
+        }
+      }
     })
 
     return counts
@@ -101,18 +89,8 @@ export function Timeline({ onDateRangeChange, startYear, endYear }: TimelineProp
     return (count / maxCount) * 40 // Max height of 40px
   }
 
-  const getVisibleYears = () => {
-    const interval = zoomLevel >= 2 ? 1 : zoomLevel >= 1.5 ? 2 : 5
-    const years = []
-    for (let year = minYear; year <= maxYear; year += interval) {
-      if (imageCountsPerYear[year]) {
-        years.push(year)
-      }
-    }
-    return years
-  }
+  
 
-  const visibleYears = getVisibleYears()
   const filteredCounts = Object.entries(imageCountsPerYear).filter(
     ([year]) => Number.parseInt(year) >= startYear && Number.parseInt(year) <= endYear,
   )
@@ -160,6 +138,17 @@ export function Timeline({ onDateRangeChange, startYear, endYear }: TimelineProp
               width: `${getMarkerPosition(endYear) - getMarkerPosition(startYear)}%`,
             }}
           />
+
+          {/* Active cluster range highlight */}
+          {activeStartYear && activeEndYear && (
+            <div
+              className="absolute top-0 bottom-0 bg-green-500/30 rounded border-x-2 border-green-500"
+              style={{
+                left: `${getMarkerPosition(activeStartYear)}%`,
+                width: `${getMarkerPosition(activeEndYear) - getMarkerPosition(activeStartYear)}%`,
+              }}
+            />
+          )}
 
           {/* Histogram bars */}
           {Object.entries(imageCountsPerYear).map(([year, count]) => {

@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { Timeline } from "@/components/timeline"
-import { ImageClusters } from "@/components/image-clusters"
-
+import { ClusterList } from "@/components/cluster-list"
+import clusters from "../scripts/data/clusters.json"
 
 export default function Home() {
   const [startYear, setStartYear] = useState(1756)
@@ -16,9 +16,18 @@ export default function Home() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Newspaper Image Clusters Timeline</h1>
-      <Timeline onDateRangeChange={handleDateRangeChange} startYear={startYear} endYear={endYear} />
-      <ImageClusters startYear={startYear} endYear={endYear} />
+      <h1 className="text-3xl font-bold mb-8 text-center">Newspaper Navigator: Viral Images</h1>
+      <Timeline
+        onDateRangeChange={handleDateRangeChange}
+        startYear={startYear}
+        endYear={endYear}
+        clusters={clusters}
+      />
+      <ClusterList
+        clusters={clusters}
+        startYear={startYear}
+        endYear={endYear}
+      />
     </div>
   )
 }
