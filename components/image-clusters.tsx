@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,7 +8,6 @@ import { ChevronLeft, ChevronRight, Calendar, Newspaper, Info, ArrowLeft, ArrowR
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import clustersData from "../scripts/data/clusters.json"
 
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -24,85 +23,108 @@ interface ImageClustersProps {
   metadata: MetadataItem[];
 }
 
-export function ImageClusters({ startYear, endYear, clusterId, metadata }: ImageClustersProps) {
-  const metadataMap = new Map(metadata.map((item) => [item.filepath, item]));
+interface SimilarImage {
+  id: string;
+  src: string;
+  alt: string;
+  date: string;
+  publication: string;
+  publisher: string;
+  place_of_publication: string;
+  caption: string;
+}
 
-  // Process the cluster data
-  interface SimilarImage {
-    id: string;
-    src: string;
-    alt: string;
-    date: string;
-    publication: string;
-    publisher: string;
-    place_of_publication: string;
-    caption: string;
-  }
+interface Cluster {
+  id: string;
+  title: string;
+  description: string;
+  similarImages: SimilarImage[];
+  alternatePublications: SimilarImage[];
+}
 
-  interface Cluster {
-    id: string;
-    title: string;
-    description: string;
-    similarImages: SimilarImage[];
-    alternatePublications: SimilarImage[];
-  }
-
-  const imageClusters: Cluster[] = Object.entries(clustersData).map(([clusterId, imagePaths]) => {
-    const similarImages: SimilarImage[] = imagePaths
-      .map((filepath) => {
-        const meta = metadataMap.get(filepath)
-        if (!meta) {
-          return null
-        }
-        return {
-          id: filepath,
-          src: meta.prediction_section_iiif_url,
-          alt: `${meta.name} - ${meta.pub_date}`,
-          date: meta.pub_date,
-          publication: meta.name,
-          publisher: meta.publisher,
-          place_of_publication: meta.place_of_publication,
-          caption: `Published in ${meta.name} on ${meta.pub_date}.`,
-        }
-      })
-      .filter((image): image is SimilarImage => image !== null)
-
-    return {
-      id: clusterId,
-      title: `Cluster ${clusterId}`,
-      description: "A cluster of visually similar images from historical newspapers.",
-      similarImages,
-      alternatePublications: [], // This can be populated if there's a clear distinction in the data
-    }
-  })
-
+export function ImageClusters({ startYear, endYear, clusterId, metadata: metadataProp }: ImageClustersProps) {
+  const [imageClusters, setImageClusters] = useState<Cluster[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const chronologicalScrollRef = useRef<HTMLDivElement>(null)
   const alternatePublicationsScrollRef = useRef<HTMLDivElement>(null)
 
-  const currentCluster = imageClusters.find((c) => c.id === clusterId)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const clustersRes = await fetch('/api/data?type=clusters');
 
-  // Filter and sort images based on date range
-  const getFilteredAndSortedImages = () => {
-    if (!currentCluster) return []; // Handle case where currentCluster is not found
+        if (!clustersRes.ok) throw new Error('Failed to fetch clusters');
+
+        const clustersData = await clustersRes.json();
+
+        const metadataMap = new Map(metadataProp.map((item) => [item.filepath, item]));
+
+        const processedClusters: Cluster[] = Object.entries(clustersData).map(([id, imagePaths]) => {
+          const similarImages: SimilarImage[] = (imagePaths as string[])
+            .map((filepath) => {
+              const meta = metadataMap.get(filepath);
+              if (!meta) {
+                return null;
+              }
+              return {
+                id: filepath,
+                src: meta.prediction_section_iiif_url,
+                alt: `${meta.name} - ${meta.pub_date}`,
+                date: meta.pub_date,
+                publication: meta.name,
+                publisher: meta.publisher,
+                place_of_publication: meta.place_of_publication,
+                caption: `Published in ${meta.name} on ${meta.pub_date}.`,
+              };
+            })
+            .filter((image): image is SimilarImage => image !== null);
+
+          return {
+            id,
+            title: `Cluster ${id}`,
+            description: "A cluster of visually similar images from historical newspapers.",
+            similarImages,
+            alternatePublications: [],
+          };
+        });
+        setImageClusters(processedClusters);
+
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [metadataProp]);
+
+  const currentCluster = useMemo(() => {
+    if (!imageClusters) return null;
+    return imageClusters.find((c) => c.id === clusterId);
+  }, [imageClusters, clusterId]);
+
+  const filteredImages = useMemo(() => {
+    if (!currentCluster) return [];
     return currentCluster.similarImages
       .filter((image) => {
-        const imageYear = new Date(image.date).getFullYear()
-        return imageYear >= startYear && imageYear <= endYear
+        const imageYear = new Date(image.date).getFullYear();
+        return imageYear >= startYear && imageYear <= endYear;
       })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  }
-
-  const filteredImages = getFilteredAndSortedImages()
-
-  // Ensure selectedImageIndex is within bounds
-  const safeSelectedIndex = Math.min(Math.max(0, selectedImageIndex), filteredImages.length - 1)
-  const selectedImage = filteredImages[safeSelectedIndex]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [currentCluster, startYear, endYear]);
 
   // Scroll to selected image
   useEffect(() => {
-    if (chronologicalScrollRef.current) {
-      const selectedImageElement = chronologicalScrollRef.current.children[safeSelectedIndex] as HTMLElement;
+    if (chronologicalScrollRef.current && filteredImages.length > 0) {
+      const selectedImageElement = chronologicalScrollRef.current.children[selectedImageIndex] as HTMLElement;
       if (selectedImageElement) {
         selectedImageElement.scrollIntoView({
           behavior: 'smooth',
@@ -111,7 +133,24 @@ export function ImageClusters({ startYear, endYear, clusterId, metadata }: Image
         });
       }
     }
-  }, [selectedImageIndex, filteredImages, safeSelectedIndex]);
+  }, [selectedImageIndex, filteredImages, currentCluster]);
+
+  if (loading) {
+    return <div className="text-center py-4">Loading images...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-4 text-red-500">Error: {error}</div>;
+  }
+
+  if (!imageClusters || !currentCluster) {
+    return <div className="text-center py-4">No image cluster data available or cluster not found.</div>;
+  }
+
+  // Ensure selectedImageIndex is within bounds
+
+  const safeSelectedIndex = Math.min(Math.max(0, selectedImageIndex), filteredImages.length - 1)
+  const selectedImage = filteredImages[safeSelectedIndex]
 
   const handleImageSelect = (index: number) => {
     setSelectedImageIndex(index)
@@ -127,10 +166,6 @@ export function ImageClusters({ startYear, endYear, clusterId, metadata }: Image
     if (selectedImageIndex < filteredImages.length - 1) {
       setSelectedImageIndex(selectedImageIndex + 1)
     }
-  }
-
-  if (!currentCluster) {
-    return <div>Cluster not found</div>
   }
 
   const scrollAlternatePublicationsLeft = () => {

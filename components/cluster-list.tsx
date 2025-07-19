@@ -5,16 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
-interface ImageMeta {
-  pub_date?: string;
-  prediction_section_iiif_url?: string;
-  name?: string;
-}
+import { MetadataItem } from "@/lib/types";
 
-export interface ClusterData {
+interface ClusterData {
   id: string;
   imagePaths: string[];
-  firstImageMeta?: ImageMeta;
+  firstImageMeta?: MetadataItem;
 }
 
 interface Cluster {
@@ -28,34 +24,33 @@ interface Cluster {
 }
 
 export function ClusterList({
-  allClusters,
   startYear,
   endYear,
 }: {
-  allClusters: ClusterData[];
   startYear: number;
   endYear: number;
 }) {
   const ITEMS_PER_PAGE = 10;
+  const [allClusters, setAllClusters] = useState<ClusterData[]>([]);
   const [displayedClusters, setDisplayedClusters] = useState<Cluster[]>([]);
-  
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
-  const processClusters = useCallback((clustersToProcess: ClusterData[]) => {
+  const processClusters = useCallback((clustersToProcess: ClusterData[], metadataMap: Map<string, MetadataItem>) => {
     if (!Array.isArray(clustersToProcess)) {
       console.error("processClusters received non-array data:", clustersToProcess);
       return [];
     }
     return clustersToProcess.map((cluster: ClusterData) => {
       const imagePaths = cluster.imagePaths;
-      const firstImageMeta = cluster.firstImageMeta;
+      const firstImageMeta = imagePaths.length > 0 ? metadataMap.get(imagePaths[0]) : undefined;
 
       const dates = imagePaths
-        .map(() => (firstImageMeta?.pub_date ? new Date(firstImageMeta.pub_date).getFullYear() : 0))
+        .map(p => (metadataMap.get(p)?.pub_date ? new Date(metadataMap.get(p)!.pub_date).getFullYear() : 0))
         .filter((y: number) => y > 0);
 
       const clusterStartYear = dates.length > 0 ? Math.min(...dates) : 0;
@@ -74,10 +69,46 @@ export function ClusterList({
   }, []);
 
   useEffect(() => {
-    const initialProcessedClusters = processClusters(allClusters.slice(0, ITEMS_PER_PAGE));
-    setDisplayedClusters(initialProcessedClusters);
-    setCurrentPage(1);
-  }, [allClusters, processClusters]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [clustersRes, metadataRes] = await Promise.all([
+          fetch('/api/data?type=clusters'),
+          fetch('/api/data?type=metadata'),
+        ]);
+
+        if (!clustersRes.ok) throw new Error('Failed to fetch clusters');
+        if (!metadataRes.ok) throw new Error('Failed to fetch metadata');
+
+        const clustersData = await clustersRes.json();
+        const metadataData: MetadataItem[] = await metadataRes.json();
+
+        const metadataMap = new Map(metadataData.map((item) => [item.filepath, item]));
+
+        const formattedClusters: ClusterData[] = Object.entries(clustersData).map(([id, imagePaths]) => ({
+          id,
+          imagePaths: Array.isArray(imagePaths) ? imagePaths as string[] : [],
+          firstImageMeta: (imagePaths as string[]).length > 0 ? metadataMap.get((imagePaths as string[])[0]) : undefined,
+        }));
+
+        setAllClusters(formattedClusters);
+        const initialProcessedClusters = processClusters(formattedClusters.slice(0, ITEMS_PER_PAGE), metadataMap);
+        setDisplayedClusters(initialProcessedClusters);
+        setCurrentPage(1);
+
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [processClusters]);
 
   const loadMoreClusters = useCallback(() => {
     setLoading(true);
@@ -87,7 +118,12 @@ export function ClusterList({
     const newClustersData = allClusters.slice(startIndex, endIndex);
 
     if (newClustersData.length > 0) {
-      const processedNewClusters = processClusters(newClustersData);
+      // Re-fetch metadataMap for processing new clusters if needed, or pass it down
+      // For simplicity, assuming metadataMap is available or can be re-derived if necessary
+      // A more robust solution might pass metadataMap as a dependency or store it in state
+      const metadataMap = new Map(allClusters.flatMap(c => c.imagePaths).map(p => allClusters.find(c => c.imagePaths.includes(p))?.firstImageMeta).filter(Boolean).map(item => [item!.filepath, item!]));
+
+      const processedNewClusters = processClusters(newClustersData, metadataMap);
       setDisplayedClusters((prevClusters) => [...prevClusters, ...processedNewClusters]);
       setCurrentPage(nextPage);
     }
@@ -185,7 +221,13 @@ export function ClusterList({
     };
   }, [filteredClusters]);
 
+  if (loading) {
+    return <div className="container mx-auto py-8 text-center">Loading clusters...</div>;
+  }
 
+  if (error) {
+    return <div className="container mx-auto py-8 text-center text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="relative">

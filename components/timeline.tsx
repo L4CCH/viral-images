@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { ZoomIn, ZoomOut, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
+
+
 interface ClusterData {
   id: string;
   imagePaths: string[];
@@ -21,8 +23,12 @@ interface TimelineProps {
   clusters: ClusterData[];
 }
 
-export function Timeline({ onDateRangeChange, startYear, endYear, activeStartYear, activeEndYear, clusters }: TimelineProps) {
+export function Timeline({ onDateRangeChange, startYear, endYear, activeStartYear, activeEndYear, clusters: clustersProp }: TimelineProps) {
   const [zoomLevel, setZoomLevel] = useState(1)
+
+  const clusters = clustersProp || [];
+
+  
 
   const minYear = 1700
   const maxYear = 2024
