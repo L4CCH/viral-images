@@ -1,85 +1,90 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Calendar, Newspaper, Info, ArrowLeft, ArrowRight, Building, MapPin } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar, Newspaper, Info, ArrowLeft, ArrowRight, Building, MapPin, Eye } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import clustersData from "../scripts/data/clusters.json"
-import metadata from "../scripts/data/metadata.json"
 
-// Create a map for quick lookup of metadata by filepath
-const metadataMap = new Map(metadata.map((item) => [item.filepath, item]))
+const formatDate = (dateString: string) => {
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+};
 
-// Process the cluster data
-interface SimilarImage {
-  id: string;
-  src: string;
-  alt: string;
-  date: string;
-  publication: string;
-  publisher: string;
-  place_of_publication: string;
-  caption: string;
-}
-
-interface Cluster {
-  id: string;
-  title: string;
-  description: string;
-  similarImages: SimilarImage[];
-  alternatePublications: SimilarImage[];
-}
-
-const imageClusters: Cluster[] = Object.entries(clustersData).map(([clusterId, imagePaths]) => {
-  const similarImages: SimilarImage[] = imagePaths
-    .map((filepath) => {
-      const meta = metadataMap.get(filepath)
-      if (!meta) {
-        return null
-      }
-      return {
-        id: filepath,
-        src: meta.prediction_section_iiif_url,
-        alt: `${meta.name} - ${meta.pub_date}`,
-        date: meta.pub_date,
-        publication: meta.name,
-        publisher: meta.publisher,
-        place_of_publication: meta.place_of_publication,
-        caption: `Published in ${meta.name} on ${meta.pub_date}.`,
-      }
-    })
-    .filter((image): image is SimilarImage => image !== null)
-
-  return {
-    id: clusterId,
-    title: `Cluster ${clusterId}`,
-    description: "A cluster of visually similar images from historical newspapers.",
-    similarImages,
-    alternatePublications: [], // This can be populated if there's a clear distinction in the data
-  }
-})
+import { MetadataItem } from "@/lib/types";
 
 interface ImageClustersProps {
   startYear: number
   endYear: number
   clusterId: string
+  metadata: MetadataItem[];
 }
 
-export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersProps) {
-  const currentCluster = imageClusters.find((c) => c.id === clusterId)
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
+export function ImageClusters({ startYear, endYear, clusterId, metadata }: ImageClustersProps) {
+  const metadataMap = new Map(metadata.map((item) => [item.filepath, item]));
 
-  if (!currentCluster) {
-    return <div>Cluster not found</div>
+  // Process the cluster data
+  interface SimilarImage {
+    id: string;
+    src: string;
+    alt: string;
+    date: string;
+    publication: string;
+    publisher: string;
+    place_of_publication: string;
+    caption: string;
   }
+
+  interface Cluster {
+    id: string;
+    title: string;
+    description: string;
+    similarImages: SimilarImage[];
+    alternatePublications: SimilarImage[];
+  }
+
+  const imageClusters: Cluster[] = Object.entries(clustersData).map(([clusterId, imagePaths]) => {
+    const similarImages: SimilarImage[] = imagePaths
+      .map((filepath) => {
+        const meta = metadataMap.get(filepath)
+        if (!meta) {
+          return null
+        }
+        return {
+          id: filepath,
+          src: meta.prediction_section_iiif_url,
+          alt: `${meta.name} - ${meta.pub_date}`,
+          date: meta.pub_date,
+          publication: meta.name,
+          publisher: meta.publisher,
+          place_of_publication: meta.place_of_publication,
+          caption: `Published in ${meta.name} on ${meta.pub_date}.`,
+        }
+      })
+      .filter((image): image is SimilarImage => image !== null)
+
+    return {
+      id: clusterId,
+      title: `Cluster ${clusterId}`,
+      description: "A cluster of visually similar images from historical newspapers.",
+      similarImages,
+      alternatePublications: [], // This can be populated if there's a clear distinction in the data
+    }
+  })
+
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const chronologicalScrollRef = useRef<HTMLDivElement>(null)
+  const alternatePublicationsScrollRef = useRef<HTMLDivElement>(null)
+
+  const currentCluster = imageClusters.find((c) => c.id === clusterId)
 
   // Filter and sort images based on date range
   const getFilteredAndSortedImages = () => {
+    if (!currentCluster) return []; // Handle case where currentCluster is not found
     return currentCluster.similarImages
       .filter((image) => {
         const imageYear = new Date(image.date).getFullYear()
@@ -89,6 +94,24 @@ export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersPr
   }
 
   const filteredImages = getFilteredAndSortedImages()
+
+  // Ensure selectedImageIndex is within bounds
+  const safeSelectedIndex = Math.min(Math.max(0, selectedImageIndex), filteredImages.length - 1)
+  const selectedImage = filteredImages[safeSelectedIndex]
+
+  // Scroll to selected image
+  useEffect(() => {
+    if (chronologicalScrollRef.current) {
+      const selectedImageElement = chronologicalScrollRef.current.children[safeSelectedIndex] as HTMLElement;
+      if (selectedImageElement) {
+        selectedImageElement.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest',
+        });
+      }
+    }
+  }, [selectedImageIndex, filteredImages, safeSelectedIndex]);
 
   const handleImageSelect = (index: number) => {
     setSelectedImageIndex(index)
@@ -106,26 +129,26 @@ export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersPr
     }
   }
 
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -200, behavior: "smooth" })
+  if (!currentCluster) {
+    return <div>Cluster not found</div>
+  }
+
+  const scrollAlternatePublicationsLeft = () => {
+    if (alternatePublicationsScrollRef.current) {
+      alternatePublicationsScrollRef.current.scrollBy({ left: -200, behavior: "smooth" })
     }
   }
 
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 200, behavior: "smooth" })
+  const scrollAlternatePublicationsRight = () => {
+    if (alternatePublicationsScrollRef.current) {
+      alternatePublicationsScrollRef.current.scrollBy({ left: 200, behavior: "smooth" })
     }
   }
-
-  // Ensure selectedImageIndex is within bounds
-  const safeSelectedIndex = Math.min(Math.max(0, selectedImageIndex), filteredImages.length - 1)
-  const selectedImage = filteredImages[safeSelectedIndex]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Image Cluster: {currentCluster.title}</h2>
+        <h2 className="text-xl font-semibold">{currentCluster.title}</h2>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-sm">
             {filteredImages.length} images ({startYear}-{endYear})
@@ -146,10 +169,10 @@ export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersPr
         <Card className="overflow-hidden">
           <CardContent className="p-6">
             <div className="space-y-6">
-              {/* Chronological Image Timeline - 5 images horizontally */}
+              {/* Chronological Image Timeline */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Chronological Timeline</h3>
+                  <h3 className="font-medium">Image Reproductions</h3>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handlePrevious} disabled={safeSelectedIndex === 0}>
                       <ChevronLeft className="h-4 w-4 mr-1" />
@@ -167,66 +190,41 @@ export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersPr
                   </div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4">
-                  {(() => {
-                    const timelineSize = 5
-                    const startOffset = Math.floor(timelineSize / 2)
-                    let timelineStart = Math.max(0, safeSelectedIndex - startOffset)
-                    if (timelineStart + timelineSize > filteredImages.length) {
-                      timelineStart = Math.max(0, filteredImages.length - timelineSize)
-                    }
-
-                    return Array.from({ length: 5 }).map((_, index) => {
-                      const imageIndex = timelineStart + index
-                      const image = filteredImages[imageIndex]
-                      const isSelected = imageIndex === safeSelectedIndex
-                      const isAvailable = imageIndex < filteredImages.length
-
-                      return (
-                        <div key={index} className="space-y-2">
-                          <div
-                            className={`relative aspect-[4/3] overflow-hidden rounded-lg border cursor-pointer transition-all ${
-                              isSelected
-                                ? "ring-2 ring-primary shadow-lg scale-105"
-                                : isAvailable
-                                ? "hover:ring-2 hover:ring-primary/50 hover:scale-102"
-                                : "opacity-30"
-                            }`}
-                            onClick={() => isAvailable && handleImageSelect(imageIndex)}
-                          >
-                            {isAvailable && image ? (
-                              <>
-                                <Image
-                                  src={image.src || "/placeholder.svg"}
-                                  alt={image.alt}
-                                  fill
-                                  className="object-cover"
-                                />
-                                {isSelected && (
-                                  <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                                    <div className="bg-primary text-primary-foreground rounded-full p-1">
-                                      <Calendar className="h-4 w-4" />
-                                    </div>
-                                  </div>
-                                )}
-                              </>
-                            ) : (
-                              <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                                <div className="text-muted-foreground text-xs">No image</div>
+                <div className="flex flex-nowrap gap-4 overflow-x-auto overflow-y-hidden max-h-[250px] pb-4 hide-scrollbar" ref={chronologicalScrollRef}>
+                  {filteredImages.map((image, index) => {
+                    const isSelected = index === safeSelectedIndex
+                    return (
+                      <div key={image.id} className="flex-none w-[150px] space-y-2">
+                        <div
+                          className={`relative overflow-hidden cursor-pointer h-[150px] ${
+                            isSelected
+                              ? "shadow-lg scale-105 transition-all"
+                              : "group"
+                          }`}
+                          onClick={() => handleImageSelect(index)}
+                        >
+                          <Image
+                            src={image.src || "/placeholder.svg"}
+                            alt={image.alt}
+                            width={500} // Placeholder width
+                            height={300} // Placeholder height
+                            className={`w-full h-full object-contain ${!isSelected ? "group-hover:scale-105 group-hover:shadow-md transition-transform duration-200" : ""}`}
+                          />
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                              <div className="bg-primary text-primary-foreground rounded-full p-1">
+                                <Eye className="h-4 w-4" />
                               </div>
-                            )}
-                          </div>
-
-                          {isAvailable && image && (
-                            <div className="text-center space-y-1">
-                              <p className="text-xs font-medium">{new Date(image.date).getFullYear()}</p>
-                              <p className="text-xs text-muted-foreground truncate">{image.publication}</p>
                             </div>
                           )}
                         </div>
-                      )
-                    })
-                  })()}
+                        <div className="text-center space-y-1 mt-2">
+                          <p className="text-xs font-medium">{formatDate(image.date)}</p>
+                          <p className="text-[0.65rem] text-muted-foreground truncate">{image.publication}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {/* Timeline position indicator */}
@@ -245,12 +243,13 @@ export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersPr
                 <div className="space-y-4 border-t pt-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <div className="relative aspect-[4/3] overflow-hidden rounded-lg border">
+                      <div className="relative overflow-hidden rounded-lg border flex items-center justify-center max-h-[400px]">
                         <Image
                           src={selectedImage.src || "/placeholder.svg"}
                           alt={selectedImage.alt}
-                          fill
-                          className="object-cover"
+                          width={800} // Placeholder width
+                          height={600} // Placeholder height
+                          className="w-full h-full object-contain"
                         />
                       </div>
                     </div>
@@ -320,17 +319,17 @@ export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersPr
                       variant="outline"
                       size="icon"
                       className="absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm"
-                      onClick={scrollLeft}
+                      onClick={scrollAlternatePublicationsLeft}
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </Button>
 
-                    <ScrollArea className="pb-4">
-                      <div className="flex space-x-4 px-8" ref={scrollContainerRef}>
+                    <ScrollArea className="pb-4 max-h-[200px]">
+                      <div className="flex space-x-4 px-8" ref={alternatePublicationsScrollRef}>
                         {currentCluster.alternatePublications.map((pub) => (
                           <div key={pub.id} className="flex-none w-[200px]">
-                            <div className="relative aspect-video overflow-hidden rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
-                              <Image src={pub.src || "/placeholder.svg"} alt={pub.alt} fill className="object-cover" />
+                            <div className="relative overflow-hidden rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
+                              <Image src={pub.src || "/placeholder.svg"} alt={pub.alt} width={200} height={150} className="w-full h-auto object-cover" />
                               <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1">
                                 <p className="text-xs text-white truncate font-medium">{pub.publication}</p>
                                 <p className="text-xs text-white/80 truncate">{pub.date}</p>
@@ -340,14 +339,13 @@ export function ImageClusters({ startYear, endYear, clusterId }: ImageClustersPr
                           </div>
                         ))}
                       </div>
-                      <ScrollBar orientation="horizontal" />
                     </ScrollArea>
 
                     <Button
                       variant="outline"
                       size="icon"
                       className="absolute right-0 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 backdrop-blur-sm"
-                      onClick={scrollRight}
+                      onClick={scrollAlternatePublicationsRight}
                     >
                       <ArrowRight className="h-4 w-4" />
                     </Button>

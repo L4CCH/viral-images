@@ -1,22 +1,28 @@
-import { use } from "react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import clustersData from "../../../scripts/data/clusters.json"
-import metadata from "../../../scripts/data/metadata.json"
-import { ClusterDetailsClient } from "@/components/cluster-details-client"
+import { promises as fs } from "fs";
+import path from "path";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import clustersData from "../../../scripts/data/clusters.json";
+import { ClusterDetailsClient } from "@/components/cluster-details-client";
+import { MetadataItem } from "@/lib/types";
 
 export async function generateStaticParams() {
   return Object.keys(clustersData).map((id) => ({
     id: id,
-  }))
+  }));
 }
 
-const metadataMap = new Map(metadata.map((item) => [item.filepath, item]))
+async function getMetadata(): Promise<MetadataItem[]> {
+  const filePath = path.join(process.cwd(), "scripts/data/metadata.json");
+  const fileContent = await fs.readFile(filePath, "utf8");
+  const lines = fileContent.trim().split("\n");
+  return lines.map(line => JSON.parse(line));
+}
 
-const getClusterData = (clusterKey: string) => {
-  const imagePaths = clustersData[clusterKey as keyof typeof clustersData]
+const getClusterData = (clusterKey: string, metadataMap: Map<string, MetadataItem>) => {
+  const imagePaths = clustersData[clusterKey as keyof typeof clustersData];
   if (!imagePaths) {
-    return null
+    return null;
   }
   const dates = imagePaths.map(p => new Date(metadataMap.get(p)?.pub_date || 0).getFullYear()).filter(y => y > 0);
   const startYear = Math.min(...dates);
@@ -25,13 +31,15 @@ const getClusterData = (clusterKey: string) => {
     id: clusterKey,
     startYear,
     endYear,
-  }
-}
+  };
+};
 
-export default function ClusterPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default async function ClusterPage(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params;
   const clusterKey = id;
-  const clusterData = getClusterData(clusterKey)
+  const metadata = await getMetadata();
+  const metadataMap = new Map(metadata.map((item) => [item.filepath, item]));
+  const clusterData = getClusterData(clusterKey, metadataMap);
 
   if (!clusterData) {
     return (
@@ -41,7 +49,7 @@ export default function ClusterPage({ params }: { params: Promise<{ id: string }
           <Button>Back to Cluster List</Button>
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -49,7 +57,12 @@ export default function ClusterPage({ params }: { params: Promise<{ id: string }
       clusterKey={clusterKey}
       initialStartYear={clusterData.startYear}
       initialEndYear={clusterData.endYear}
-      clusters={clustersData}
+      clusters={Object.entries(clustersData).map(([id, imagePaths]) => ({
+        id,
+        imagePaths: Array.isArray(imagePaths) ? imagePaths : [],
+        firstImageMeta: imagePaths.length > 0 ? metadataMap.get(imagePaths[0]) : undefined,
+      }))}
+      metadata={metadata}
     />
-  )
+  );
 }

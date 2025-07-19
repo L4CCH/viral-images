@@ -1,33 +1,35 @@
-"use client"
+// This is a dummy comment to trigger a re-build.
+import fs from 'fs/promises';
+import { MetadataItem } from "@/lib/types";
+import path from 'path';
+import HomeClient from "@/components/home-client";
 
-import { useState } from "react"
-import { Timeline } from "@/components/timeline"
-import { ClusterList } from "@/components/cluster-list"
-import clusters from "../scripts/data/clusters.json"
+export default async function Home() {
 
-export default function Home() {
-  const [startYear, setStartYear] = useState(1756)
-  const [endYear, setEndYear] = useState(1963)
+  const clustersFilePath = path.join(process.cwd(), 'scripts/data/clusters.json');
+  const clustersFileContent = await fs.readFile(clustersFilePath, 'utf8');
+  const rawClustersData: { [key: string]: string[] } = JSON.parse(clustersFileContent);
 
-  const handleDateRangeChange = (newStartYear: number, newEndYear: number) => {
-    setStartYear(newStartYear)
-    setEndYear(newEndYear)
-  }
+  const metadataFilePath = path.join(process.cwd(), 'scripts/data/metadata.json');
+  const metadataFileContent = await fs.readFile(metadataFilePath, 'utf8');  const metadata = metadataFileContent.split('\n').filter(Boolean).map(line => JSON.parse(line));
+
+  const metadataMap = new Map(metadata.map((item: MetadataItem) => [item.filepath, item]));
+
+  const allClusters = Object.entries(rawClustersData).map(([id, imagePaths]) => {
+    const firstImageMeta = imagePaths.length > 0 ? metadataMap.get(imagePaths[0]) : undefined;
+    const processedFirstImageMeta = firstImageMeta ? {
+      pub_date: firstImageMeta.pub_date,
+      prediction_section_iiif_url: firstImageMeta.prediction_section_iiif_url,
+      name: firstImageMeta.name,
+    } : undefined;
+    return {
+      id,
+      imagePaths,
+      firstImageMeta: processedFirstImageMeta,
+    };
+  });
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Newspaper Navigator: Viral Images</h1>
-      <Timeline
-        onDateRangeChange={handleDateRangeChange}
-        startYear={startYear}
-        endYear={endYear}
-        clusters={clusters}
-      />
-      <ClusterList
-        clusters={clusters}
-        startYear={startYear}
-        endYear={endYear}
-      />
-    </div>
-  )
+    <HomeClient allClusters={allClusters} />
+  );
 }

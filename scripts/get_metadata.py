@@ -21,19 +21,45 @@ def _():
 @app.cell
 def _(load_dataset):
     # Load a specific configuration (e.g., photos)
-    dataset = load_dataset("biglam/newspaper-navigator", "default")
+    dataset = load_dataset("biglam/newspaper-navigator", "photos")
     return (dataset,)
 
 
 @app.cell
 def _(json):
     # Load the cluster data
-    with open("scripts/data/clusters.json", "r") as f:
-        clusters_data = json.load(f)
+    with open("scripts/data/clusters.json", "r") as clusters_json:
+        clusters_data = json.load(clusters_json)
 
+    with open("scripts/data/clusters.json", "r") as clusters_json:
+        clusters_data = json.load(clusters_json)
+
+    def format_cluster(clusters_data):
+        formatted_data = {}
+        for cluster_id, filepaths in clusters_data.items():
+            formatted_data[cluster_id] = []
+            for filepath in filepaths:
+                # Formats a filepath from 'a_b_c' to 'a/b/c.jpg' style
+                parts = filepath.split('_')
+                if len(parts) >= 11:
+                    formatted_filepath = f"{parts[0]}_{parts[1]}_{parts[2]}/{parts[3]}/{parts[4]}/{parts[5]}/{parts[6]}/{parts[7]}/{'_'.join(parts[8:])}.jpg"
+                    formatted_data[cluster_id].append(formatted_filepath)
+                else:
+                    # Keep original if it doesn't match expected format
+                    formatted_data[cluster_id].append(filepath)
+        return formatted_data
+
+    with open("scripts/data/formatted_clusters.json", "w") as formatted_clusters_json:
+        formatted_cluster = format_cluster(clusters_data)
+        json.dump(formatted_cluster, formatted_clusters_json, indent=2)
+    return (clusters_data,)
+
+
+@app.cell
+def _(clusters_data, format_filepath):
     # Flatten the lists of filepaths from the clusters
     filepaths_to_keep = [
-        filepath
+        format_filepath(filepath)
         for cluster_filepaths in clusters_data.values()
         for filepath in cluster_filepaths
     ]
@@ -57,6 +83,11 @@ def _(dataset, filepaths_set):
 
 
 @app.cell
+def _():
+    return
+
+
+@app.cell
 def _(filtered_dataset):
     # Remove columns
     clean_dataset = filtered_dataset.remove_columns(["ocr"])
@@ -66,20 +97,33 @@ def _(filtered_dataset):
 @app.cell
 def _(clean_dataset):
     # Save JSON
-    clean_dataset.to_json("scripts/data/metadata.json", lines=False)
+    clean_dataset.to_json("scripts/data/metadata.json")
     return
 
 
 @app.cell
 def _(json):
     # Fix forward slashes
-    with open('scripts/data/metadata.json', 'r') as json_file:
-        data = json.load(json_file)  # Parse JSON to Python object
+    def fix_slashes_in_file(input_path, output_path):
+        with open(input_path, 'r') as infile, open(output_path, 'w') as outfile:
+            for line in infile:
+                try:
+                    # Load the JSON object from the line
+                    data = json.loads(line)
 
-    with open('scripts/data/metadata.json', 'w') as json_file:
-        content = json.dumps(data, indent=2, ensure_ascii=False, separators=(',', ': '))
-        content = content.replace('\\/', '/')  # Fix forward slashes after formatting
-        json_file.write(content)
+                    # Iterate over all key-value pairs
+                    for key, value in data.items():
+                        # If the value is a string and contains the escaped slashes, replace them
+                        if isinstance(value, str):
+                            data[key] = value.replace('\/', '/')
+
+                    # Write the corrected JSON object back to the new file
+                    outfile.write(json.dumps(data) + '\n')
+                except json.JSONDecodeError:
+                    # If a line is not a valid JSON, write it as is to the new file
+                    outfile.write(line)
+
+    fix_slashes_in_file("scripts/data/metadata.json", "scripts/data/metadata_fixed.json")
     return
 
 

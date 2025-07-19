@@ -6,14 +6,23 @@ import { ImageClusters } from "@/components/image-clusters"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
+import { MetadataItem } from "@/lib/types";
+
+interface ClusterData {
+  id: string;
+  imagePaths: string[];
+  firstImageMeta?: { pub_date?: string };
+}
+
 interface ClusterDetailsClientProps {
   clusterKey: string;
   initialStartYear: number;
   initialEndYear: number;
-  clusters: { [key: string]: string[] };
+  clusters: ClusterData[];
+  metadata: MetadataItem[];
 }
 
-export function ClusterDetailsClient({ clusterKey, initialStartYear, initialEndYear, clusters }: ClusterDetailsClientProps) {
+export function ClusterDetailsClient({ clusterKey, initialStartYear, initialEndYear, clusters, metadata }: ClusterDetailsClientProps) {
   const [startYear, setStartYear] = useState(initialStartYear);
   const [endYear, setEndYear] = useState(initialEndYear);
 
@@ -24,7 +33,6 @@ export function ClusterDetailsClient({ clusterKey, initialStartYear, initialEndY
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Newspaper Image Clusters Timeline</h1>
       <Timeline
         onDateRangeChange={handleDateRangeChange}
         startYear={startYear}
@@ -35,10 +43,10 @@ export function ClusterDetailsClient({ clusterKey, initialStartYear, initialEndY
       />
       <Link href="/">
         <Button className="mb-4">
-          &larr; Back to Cluster List
+          &larr; Back to Gallery
         </Button>
       </Link>
-      <ImageClusters startYear={startYear} endYear={endYear} clusterId={clusterKey} />
+      <ImageClusters startYear={startYear} endYear={endYear} clusterId={clusterKey} metadata={metadata} />
     </div>
   );
 }
