@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.11"
+__generated_with = "0.14.12"
 app = marimo.App(width="full")
 
 
@@ -28,11 +28,8 @@ def _(load_dataset):
 @app.cell
 def _(json):
     # Load the cluster data
-    with open("scripts/data/clusters.json", "r") as clusters_json:
-        clusters_data = json.load(clusters_json)
-
-    with open("scripts/data/clusters.json", "r") as clusters_json:
-        clusters_data = json.load(clusters_json)
+    with open("./data/raw/clusters.json", "r") as clusters_json:
+        clusters_raw_data = json.load(clusters_json)
 
     def format_cluster(clusters_data):
         formatted_data = {}
@@ -49,18 +46,18 @@ def _(json):
                     formatted_data[cluster_id].append(filepath)
         return formatted_data
 
-    with open("scripts/data/formatted_clusters.json", "w") as formatted_clusters_json:
-        formatted_cluster = format_cluster(clusters_data)
-        json.dump(formatted_cluster, formatted_clusters_json, indent=2)
-    return (clusters_data,)
+    with open("./data/processed/clusters.json", "w") as processed_clusters_json:
+        processed_cluster = format_cluster(clusters_raw_data)
+        json.dump(processed_cluster, processed_clusters_json, indent=2)
+    return (processed_cluster,)
 
 
 @app.cell
-def _(clusters_data, format_filepath):
+def _(processed_cluster):
     # Flatten the lists of filepaths from the clusters
     filepaths_to_keep = [
-        format_filepath(filepath)
-        for cluster_filepaths in clusters_data.values()
+        filepath
+        for cluster_filepaths in processed_cluster.values()
         for filepath in cluster_filepaths
     ]
 
@@ -83,11 +80,6 @@ def _(dataset, filepaths_set):
 
 
 @app.cell
-def _():
-    return
-
-
-@app.cell
 def _(filtered_dataset):
     # Remove columns
     clean_dataset = filtered_dataset.remove_columns(["ocr"])
@@ -97,7 +89,7 @@ def _(filtered_dataset):
 @app.cell
 def _(clean_dataset):
     # Save JSON
-    clean_dataset.to_json("scripts/data/metadata.json")
+    clean_dataset.to_json("./data/raw/metadata.json")
     return
 
 
@@ -115,7 +107,7 @@ def _(json):
                     for key, value in data.items():
                         # If the value is a string and contains the escaped slashes, replace them
                         if isinstance(value, str):
-                            data[key] = value.replace('\/', '/')
+                            data[key] = value.replace('\\/', '/')
 
                     # Write the corrected JSON object back to the new file
                     outfile.write(json.dumps(data) + '\n')
@@ -123,40 +115,7 @@ def _(json):
                     # If a line is not a valid JSON, write it as is to the new file
                     outfile.write(line)
 
-    fix_slashes_in_file("scripts/data/metadata.json", "scripts/data/metadata_fixed.json")
-    return
-
-
-@app.cell
-def _(os, requests, time, tqdm):
-    def download_images(dataset):
-        """Downloads all images from the dataset to a specified directory."""
-        output_dir = "script/data/filtered_image_files"
-        os.makedirs(output_dir, exist_ok=True)
-
-        # 20 requests per minute is 1 request every 3 seconds
-        requests_per_minute = 20
-        delay_between_requests = 60.0 / requests_per_minute
-
-        for index, photo in enumerate(tqdm(dataset, total=len(dataset))):
-
-            image_url = photo['prediction_section_iiif_url']
-            # Sanitize filepath to create a valid filename
-            filename_path = photo['filepath'].replace('/', '_')
-            filename = os.path.join(output_dir, f"{filename_path}.jpg")
-
-            try:
-                response = requests.get(image_url, stream=True)
-                response.raise_for_status()
-
-                with open(filename, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                time.sleep(delay_between_requests)
-            except requests.exceptions.RequestException as e:
-                print(f"Error downloading {image_url}: {e}")
-
-    # download_images(filtered_photos_dataset)
+    fix_slashes_in_file("./data/raw/metadata.json", "./data/processed/metadata.json")
     return
 
 

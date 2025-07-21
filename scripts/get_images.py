@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.11"
+__generated_with = "0.14.12"
 app = marimo.App(width="full")
 
 
@@ -93,6 +93,39 @@ def _(filtered_photos_dataset, os, requests, time, tqdm):
                 print(f"Error downloading {image_url}: {e}")
 
     download_images(filtered_photos_dataset)
+    return
+
+
+@app.cell
+def _():
+    # def download_images(dataset):
+    #     """Downloads all images from the dataset to a specified directory."""
+    #     output_dir = "script/data/filtered_image_files"
+    #     os.makedirs(output_dir, exist_ok=True)
+
+    #     # 20 requests per minute is 1 request every 3 seconds
+    #     requests_per_minute = 20
+    #     delay_between_requests = 60.0 / requests_per_minute
+
+    #     for index, photo in enumerate(tqdm(dataset, total=len(dataset))):
+
+    #         image_url = photo['prediction_section_iiif_url']
+    #         # Sanitize filepath to create a valid filename
+    #         filename_path = photo['filepath'].replace('/', '_')
+    #         filename = os.path.join(output_dir, f"{filename_path}.jpg")
+
+    #         try:
+    #             response = requests.get(image_url, stream=True)
+    #             response.raise_for_status()
+
+    #             with open(filename, 'wb') as f:
+    #                 for chunk in response.iter_content(chunk_size=8192):
+    #                     f.write(chunk)
+    #             time.sleep(delay_between_requests)
+    #         except requests.exceptions.RequestException as e:
+    #             print(f"Error downloading {image_url}: {e}")
+
+    # # download_images(filtered_photos_dataset)
     return
 
 
