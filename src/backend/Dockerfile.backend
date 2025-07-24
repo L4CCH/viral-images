@@ -1,20 +1,31 @@
-# Use an official Python runtime as a parent image
+# Stage 1: Download the dataset
+FROM python:3.9-slim AS builder
+
+# Install datasets library to download the data
+RUN pip install datasets
+
+# Download the dataset. This will cache it in /root/.cache/huggingface/datasets
+RUN python -c "from datasets import load_dataset; load_dataset('biglam/newspaper-navigator', 'photos')"
+
+# Stage 2: Application
 FROM python:3.9-slim
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file to the working directory
+# Copy the requirements file
 COPY requirements.txt .
 
-# Install any needed packages specified in requirements.txt
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
+# Copy the application code
 COPY . .
 
-# Make port 8000 available to the world outside this container
+# Copy the downloaded dataset from the builder stage
+COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface
+
+# Expose the port
 EXPOSE 8000
 
-# Run the app when the container launches
+# Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
