@@ -28,7 +28,7 @@ def _(load_dataset):
 @app.cell
 def _(json):
     # Load the cluster data
-    with open("./data/raw/clusters.json", "r") as clusters_json:
+    with open("../data/raw/clusters.json", "r") as clusters_json:
         clusters_raw_data = json.load(clusters_json)
 
     def format_cluster(clusters_data):
@@ -46,7 +46,7 @@ def _(json):
                     formatted_data[cluster_id].append(filepath)
         return formatted_data
 
-    with open("./data/processed/clusters.json", "w") as processed_clusters_json:
+    with open("../data/processed/clusters.json", "w") as processed_clusters_json:
         processed_cluster = format_cluster(clusters_raw_data)
         json.dump(processed_cluster, processed_clusters_json, indent=2)
     return (processed_cluster,)
@@ -89,7 +89,7 @@ def _(filtered_dataset):
 @app.cell
 def _(clean_dataset):
     # Save JSON
-    clean_dataset.to_json("./data/raw/metadata.json")
+    clean_dataset.to_json("../data/raw/metadata.json")
     return
 
 
@@ -115,7 +115,7 @@ def _(json):
                     # If a line is not a valid JSON, write it as is to the new file
                     outfile.write(line)
 
-    fix_slashes_in_file("./data/raw/metadata.json", "./data/processed/metadata.json")
+    fix_slashes_in_file("../data/raw/metadata.json", "../data/processed/metadata.json")
     return
 
 
