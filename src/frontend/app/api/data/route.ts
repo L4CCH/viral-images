@@ -11,9 +11,9 @@ export async function GET(request: Request) {
 
     let filePath;
     if (type === 'clusters') {
-      filePath = path.join(process.cwd(), '../data/processed/clusters.json');
+      filePath = path.join(process.cwd(), '../../data/processed/clusters.json');
     } else if (type === 'metadata') {
-      filePath = path.join(process.cwd(), '../data/processed/metadata.json');
+      filePath = path.join(process.cwd(), '../../data/processed/metadata.json');
     } else {
       return NextResponse.json({ error: 'Invalid data type' }, { status: 400 });
     }
