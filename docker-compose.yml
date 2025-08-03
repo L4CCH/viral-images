@@ -22,4 +22,12 @@ services:
       - "8000:8000"
     volumes:
       - ./src/backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'      # Allow up to 4 CPU cores
+          memory: 6G       # Increase memory limit
+        reservations:
+          cpus: '2.0'      # Reserve 2 CPU cores
+          memory: 2G       # Reserve 2GB memory
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload

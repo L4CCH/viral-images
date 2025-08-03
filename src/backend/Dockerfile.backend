@@ -1,14 +1,22 @@
 # Stage 1: Download the dataset
-FROM python:3.9-slim AS builder
+FROM python:3.9 AS builder
+
+# Update and install security patches
+RUN apt-get update && apt-get upgrade -y && apt-get clean
 
 # Install datasets library to download the data
-RUN pip install datasets
+RUN pip install --no-cache-dir datasets
 
-# Download the dataset. This will cache it in /root/.cache/huggingface/datasets
-RUN python -c "from datasets import load_dataset; load_dataset('biglam/newspaper-navigator', 'photos')"
+COPY core/preprocess_dataset.py preprocess_dataset.py
+
+# Download the dataset
+RUN python preprocess_dataset.py
 
 # Stage 2: Application
-FROM python:3.9-slim
+FROM python:3.9
+
+# Update and install security patches
+RUN apt-get update && apt-get upgrade -y && apt-get clean
 
 WORKDIR /app
 
@@ -18,11 +26,11 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the downloaded dataset from the builder stage
+COPY --from=builder processed_dataset.pkl /data/processed_dataset.pkl
+
 # Copy the application code
 COPY . .
-
-# Copy the downloaded dataset from the builder stage
-COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface
 
 # Expose the port
 EXPOSE 8000

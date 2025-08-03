@@ -1,33 +1,55 @@
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from datasets import load_dataset
-from routers import dataset, clusters, images, search
+from fastapi import FastAPI, Request
+import logging
+
+import pandas as pd
+
+from routers import default, clusters, images, search
 from core.config import settings
 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     # Load the dataset and create the filepath to index mapping
-#     print("Loading dataset...")
-#     dataset = load_dataset("biglam/newspaper-navigator", "photos", split="train")
-#     app.state.dataset = dataset
-#     app.state.filepath_to_index = {item["filepath"]: i for i, item in enumerate(dataset)}
-#     print("Dataset loaded.")
-#     yield
-#     # Clean up (optional)
-#     print("Shutting down...")
+logging.basicConfig(
+    level=logging.INFO,
+)
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        logging.info("Loading dataset...")
+        dataset_df = pd.read_pickle("/data/processed_dataset.pkl")
+
+        # The pickle file already contains a pandas DataFrame, no conversion needed
+        logging.info("Preprocessing OCR data for search...")
+
+        # Join the list of words in 'ocr' into a single string for faster search
+        dataset_df["ocr_text"] = dataset_df["ocr"].apply(
+            lambda x: " ".join(x) if isinstance(x, list) else ""
+        )
+
+        # Convert 'pub_date' to datetime objects for efficient filtering
+        dataset_df['pub_date'] = pd.to_datetime(dataset_df['pub_date'], errors='coerce')
+
+        app.state.dataset_df = dataset_df
+        logging.info("OCR data preprocessing complete.")
+
+        logging.info(f"Loaded dataset with {len(dataset_df)} rows")
+        # logging.info(f"First 10 OCR entries: {dataset_df['ocr'].head(10).tolist()}")
+
+    except Exception as e:
+        logging.error(f"Failed to load dataset: {e}")
+        raise
+
+    yield
+    app.state.dataset_df = None
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.title = settings.api_title
 app.description = settings.api_description
 app.version = settings.api_version
 
-app.include_router(dataset.router)
+app.include_router(default.router)
 app.include_router(clusters.router)
 app.include_router(images.router)
 app.include_router(search.router)
-
-# @app.get("/filepath_to_index")
-# async def get_filepath_to_index():
-#     return app.state.filepath_to_index
