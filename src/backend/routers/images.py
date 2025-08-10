@@ -1,21 +1,29 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+import pandas as pd
 
 router = APIRouter(tags=["images"])
 
 
 @router.get("/image/{image_id}")
-async def get_image_metadata(image_id: str):
+async def get_image_metadata(image_id: str, request: Request):
+
+    df = request.app.state.dataset_df
+
+    if image_id not in df["filepath"].values:
+        return {"error": "Image not found"}, 404
+
+    image_data = df[df["filepath"] == image_id].iloc[0]
 
     metadata = {
         "id": f"{image_id}",
-        "date": "1850-03-25",
-        "newspaper": "Newspaper A",
-        "publisher": "Publisher Name",
-        "place": "City, Country",
-        "url": "http://example.com/image1.jpg",
+        "date": image_data["pub_date"].strftime("%Y-%m-%d"),
+        "newspaper": image_data["name"],
+        "publisher": image_data["publisher"],
+        "place": image_data["place_of_publication"],
+        "url": image_data["url"],
         "iiif": f"http://example.com/image/{image_id}/annotation.json",
-        "cluster": "cluster_id",
-        "ocr": ["Optical", "Character", "Recognition", "text", "here"],
+        "cluster": image_data["cluster_id"],
+        "ocr": image_data["ocr_text"],
     }
 
     return metadata
