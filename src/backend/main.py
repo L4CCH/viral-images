@@ -16,9 +16,9 @@ logging.basicConfig(
 async def lifespan(app: FastAPI):
     try:
         logging.info("Loading dataset...")
-        dataset_df = pd.read_pickle("/data/processed_dataset.pkl")
+        dataset_df = pd.read_parquet("/data/processed_dataset.parquet")
 
-        # The pickle file already contains a pandas DataFrame, no conversion needed
+        # The parquet file already contains a pandas DataFrame, no conversion needed
         logging.info("Preprocessing OCR data for search...")
 
         # Join the list of words in 'ocr' into a single string for faster search
@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
         )
 
         # Convert 'pub_date' to datetime objects for efficient filtering
-        dataset_df['pub_date'] = pd.to_datetime(dataset_df['pub_date'], errors='coerce')
+        dataset_df["pub_date"] = pd.to_datetime(dataset_df["pub_date"], errors="coerce")
 
         app.state.dataset_df = dataset_df
         logging.info("OCR data preprocessing complete.")

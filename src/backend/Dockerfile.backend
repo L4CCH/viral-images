@@ -27,7 +27,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the downloaded dataset from the builder stage
-COPY --from=builder processed_dataset.pkl /data/processed_dataset.pkl
+COPY --from=builder processed_dataset.parquet /data/processed_dataset.parquet
 
 # Copy the application code
 COPY . .

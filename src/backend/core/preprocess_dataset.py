@@ -100,11 +100,14 @@ def preprocess_dataset():
     # print("Filtered DataFrame columns:")
     # print(filtered_df.columns.tolist())
 
-    print(f"Saving {len(filtered_df):,} records...")
-    filtered_df.to_pickle("processed_dataset.pkl")
+    # # Check which clusters are missing from cluster_ids
+    # all_cluster_ids = set(clusters.keys())
+    # present_cluster_ids = set(filtered_df["cluster_id"].dropna().unique())
+    # missing_cluster_ids = all_cluster_ids - present_cluster_ids
+    # print(f"Missing cluster_ids: {missing_cluster_ids}")
 
-    # Also save as parquet for faster loading
-    print("Also saving as parquet...")
+    # Save parquet for faster loading
+    print(f"Saving {len(filtered_df):,} records as parquet")
     filtered_df.to_parquet("processed_dataset.parquet")
 
     print("Done!")
