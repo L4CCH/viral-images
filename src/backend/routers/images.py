@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 import pandas as pd
 
 router = APIRouter(tags=["images"])
@@ -10,7 +10,7 @@ async def get_image_metadata(image_id: str, request: Request):
     df = request.app.state.dataset_df
 
     if image_id not in df["filepath"].values:
-        return {"error": "Image not found"}, 404
+        raise HTTPException(status_code=404, detail="Image not found")
 
     image_data = df[df["filepath"] == image_id].iloc[0]
 

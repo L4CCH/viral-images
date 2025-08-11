@@ -11,14 +11,16 @@ async def get_dataset_metedata(request: Request):
 
     df = request.app.state.dataset_df
 
-    first_date = df["pub_date"].min()
-    last_date = df["pub_date"].max()
+    first_date = df["pub_date"].min().year
+    last_date = df["pub_date"].max().year
 
     # variable that count the of unique newspapers
     unique_newspapers = df["name"].nunique()
 
     # variable that count the number of unique clusters
     unique_clusters = df["cluster_id"].nunique()
+
+    unique_publishers = df["publisher"].nunique()
 
     metadata = {
         "id": "viral_images_api",
@@ -34,6 +36,7 @@ async def get_dataset_metedata(request: Request):
         "clusters": unique_clusters,
         "images": len(df),
         "newspapers": unique_newspapers,
+        "publishers": unique_publishers,
         "columns": f"{list(df.columns)}",
     }
 
