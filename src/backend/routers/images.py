@@ -1,30 +1,19 @@
-from fastapi import APIRouter, Request, HTTPException
-import pandas as pd
+from fastapi import APIRouter, HTTPException, Depends
+from services.data import DataService
+from dependencies import get_data_service
 
 router = APIRouter(tags=["images"])
 
 
 @router.get("/image/{image_id}")
-async def get_image_metadata(image_id: str, request: Request):
-
-    df = request.app.state.dataset_df
-
-    if image_id not in df["filepath"].values:
+async def get_image_metadata(
+    image_id: str,
+    data_service: DataService = Depends(get_data_service),
+):
+    metadata = data_service.get_image(image_id)
+    
+    if metadata is None:
         raise HTTPException(status_code=404, detail="Image not found")
-
-    image_data = df[df["filepath"] == image_id].iloc[0]
-
-    metadata = {
-        "id": f"{image_id}",
-        "date": image_data["pub_date"].strftime("%Y-%m-%d"),
-        "newspaper": image_data["name"],
-        "publisher": image_data["publisher"],
-        "place": image_data["place_of_publication"],
-        "url": image_data["url"],
-        "iiif": f"http://example.com/image/{image_id}/annotation.json",
-        "cluster": image_data["cluster_id"],
-        "ocr": image_data["ocr_text"],
-    }
 
     return metadata
 

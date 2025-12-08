@@ -1,5 +1,5 @@
 # Stage 1: Download the dataset
-FROM python:3.9 AS builder
+FROM python:3.12 AS builder
 
 # Update and install security patches
 RUN apt-get update && apt-get upgrade -y && apt-get clean
@@ -13,7 +13,7 @@ COPY core/preprocess_dataset.py preprocess_dataset.py
 RUN python preprocess_dataset.py
 
 # Stage 2: Application
-FROM python:3.9
+FROM python:3.12
 
 # Update and install security patches
 RUN apt-get update && apt-get upgrade -y && apt-get clean

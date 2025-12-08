@@ -2,10 +2,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 import logging
 
-import pandas as pd
+
 
 from routers import default, clusters, images, search
 from core.config import settings
+from services.data import DataService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,32 +16,16 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        logging.info("Loading dataset...")
-        dataset_df = pd.read_parquet("/data/processed_dataset.parquet")
-
-        # The parquet file already contains a pandas DataFrame, no conversion needed
-        logging.info("Preprocessing OCR data for search...")
-
-        # Join the list of words in 'ocr' into a single string for faster search
-        dataset_df["ocr_text"] = dataset_df["ocr"].apply(
-            lambda x: " ".join(x) if isinstance(x, list) else ""
-        )
-
-        # Convert 'pub_date' to datetime objects for efficient filtering
-        dataset_df["pub_date"] = pd.to_datetime(dataset_df["pub_date"], errors="coerce")
-
-        app.state.dataset_df = dataset_df
-        logging.info("OCR data preprocessing complete.")
-
-        logging.info(f"Loaded dataset with {len(dataset_df)} rows")
-        # logging.info(f"First 10 OCR entries: {dataset_df['ocr'].head(10).tolist()}")
-
+        data_service = DataService()
+        data_service.load_data()
+        app.state.data_service = data_service
+        
     except Exception as e:
         logging.error(f"Failed to load dataset: {e}")
         raise
 
     yield
-    app.state.dataset_df = None
+    app.state.data_service = None
 
 
 app = FastAPI(lifespan=lifespan)
