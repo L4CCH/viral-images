@@ -1,15 +1,28 @@
 from fastapi import APIRouter, HTTPException, Depends
 from services.data import DataService
 from dependencies import get_data_service
+from models.schemas import Image
 
 router = APIRouter(tags=["images"])
 
 
-@router.get("/image/{image_id}")
+@router.get("/image/{image_id}", response_model=Image)
 async def get_image_metadata(
     image_id: str,
     data_service: DataService = Depends(get_data_service),
 ):
+    """
+    Get metadata for a specific image by its ID.
+    
+    Args:
+        image_id: The unique identifier (filepath) of the image
+        
+    Returns:
+        Image metadata including publication details, cluster information, and OCR text
+        
+    Raises:
+        HTTPException: 404 if image is not found
+    """
     metadata = data_service.get_image(image_id)
     
     if metadata is None:

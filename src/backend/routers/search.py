@@ -3,12 +3,13 @@ from typing import List, Optional
 from datetime import date
 from services.data import DataService
 from dependencies import get_data_service
+from models.schemas import Cluster
 
 
 router = APIRouter(tags=["search"])
 
 
-@router.get("/search")
+@router.get("/search", response_model=List[Cluster])
 async def get_search_results(
     query: Optional[str] = None,
     start_date: Optional[date] = None,
@@ -16,7 +17,7 @@ async def get_search_results(
     newspaper_name: Optional[str] = None,
     publisher: Optional[str] = None,
     page: int = 1,
-    limit: int = Query(10, enum=[10, 50, 100]),
+    limit: int = Query(10, ge=1, le=10000),  # Allow any limit between 1 and 10000
     data_service: DataService = Depends(get_data_service),
 ):
     return data_service.search(

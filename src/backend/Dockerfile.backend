@@ -1,39 +1,73 @@
-# Stage 1: Download the dataset
-FROM python:3.12 AS builder
+# Stage 1: Download and preprocess the dataset
+FROM python:3.12-slim AS builder
 
-# Update and install security patches
-RUN apt-get update && apt-get upgrade -y && apt-get clean
+# Install system dependencies for building Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install datasets library to download the data
-RUN pip install --no-cache-dir datasets
+# Set working directory
+WORKDIR /builder
 
-COPY core/preprocess_dataset.py preprocess_dataset.py
+# Install only the dependencies needed for preprocessing
+# Using separate RUN for better layer caching
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir \
+    datasets \
+    pandas \
+    pyarrow
 
-# Download the dataset
-RUN python preprocess_dataset.py
-
-# Stage 2: Application
-FROM python:3.12
-
-# Update and install security patches
-RUN apt-get update && apt-get upgrade -y && apt-get clean
-
-WORKDIR /app
-
-# Copy the requirements file
+# Copy only the preprocessing script and its dependencies
+COPY core/ ./core/
 COPY requirements.txt .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Set PYTHONPATH so imports work correctly
+ENV PYTHONPATH=/builder
 
-# Copy the downloaded dataset from the builder stage
-COPY --from=builder processed_dataset.parquet /data/processed_dataset.parquet
+# Run preprocessing (outputs to processed_dataset.parquet in current directory)
+RUN python core/preprocess_dataset.py || \
+    (echo "Preprocessing failed!" && exit 1)
 
-# Copy the application code
-COPY . .
+# Verify the output file was created
+RUN test -f /builder/processed_dataset.parquet || \
+    (echo "Output file not found!" && exit 1)
+
+# Stage 2: Application runtime
+FROM python:3.12-slim
+
+# Clean up apt cache (no additional runtime deps needed for slim image)
+RUN apt-get update && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app /data && \
+    chown -R appuser:appuser /app /data
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements first for better layer caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the preprocessed dataset from builder stage
+COPY --from=builder /builder/processed_dataset.parquet /data/processed_dataset.parquet
+
+# Copy application code
+COPY --chown=appuser:appuser . .
+
+# Switch to non-root user
+USER appuser
 
 # Expose the port
 EXPOSE 8000
+
+# Add health check (using root endpoint as health indicator)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" || exit 1
 
 # Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

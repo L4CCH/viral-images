@@ -1,33 +1,92 @@
-
 version: '3.8'
-services:
-  frontend:
-    build:
-      context: ./src/frontend
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./src/frontend:/app
-      - /app/node_modules
-    env_file:
-      - ./src/frontend/.env.local
-    command: pnpm run dev
 
+services:
   backend:
     build:
       context: ./src/backend
       dockerfile: Dockerfile.backend
+    container_name: viral-images-backend
+    profiles:
+      - backend
+      - full  # Can run with 'full' profile or 'backend' profile
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATA_PATH=/data/processed_dataset.parquet
     volumes:
-      - ./src/backend:/app
+      # Only mount code for development (hot reload)
+      # Comment out for production to use built image
+      - ./src/backend:/app:ro  # Read-only to prevent overwriting built files
+      # Preserve the /data directory from the image
+      - backend_data:/data
+    networks:
+      - viral-images-network
     deploy:
       resources:
         limits:
-          cpus: '4.0'      # Allow up to 4 CPU cores
-          memory: 6G       # Increase memory limit
+          cpus: '4.0'
+          memory: 6G
         reservations:
-          cpus: '2.0'      # Reserve 2 CPU cores
-          memory: 2G       # Reserve 2GB memory
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+          cpus: '2.0'
+          memory: 2G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Use reload only in development
+    command: >
+      sh -c "
+        if [ \"$${DEV_MODE:-false}\" = \"true\" ]; then
+          uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+        else
+          uvicorn main:app --host 0.0.0.0 --port 8000
+        fi
+      "
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile.frontend
+    container_name: viral-images-frontend
+    profiles:
+      - frontend
+      - full  # Can run with 'full' profile or 'frontend' profile
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    env_file:
+      - ./src/frontend/.env.local
+    networks:
+      - viral-images-network
+    depends_on:
+      backend:
+        condition: service_healthy
+        required: false  # Allow frontend to start even if backend isn't ready
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    command: pnpm run dev
+
+networks:
+  viral-images-network:
+    driver: bridge
+    name: viral-images-network
+
+volumes:
+  backend_data:
+    name: viral-images-backend-data
+    # Persist the parquet file between container restarts
