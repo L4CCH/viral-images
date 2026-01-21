@@ -53,3 +53,10 @@ venv
 
 # data
 /data/*/**
+
+# 1910 subset
+scripts/sample-photos/1910_photos/
+scripts/sample-photos/1910_embeddings.txt
+scripts/sample-photos/1910_embeddings.npy
+scripts/sample-photos/1910_photos.zip
+scripts/sample-photos/mapping_matches.txt
