@@ -1,7 +1,10 @@
 import HomeClient from "@/components/home-client";
+import { FilterProvider } from "@/contexts/filter-context";
 
 export default function Home() {
   return (
-    <HomeClient />
+    <FilterProvider>
+      <HomeClient />
+    </FilterProvider>
   );
 }

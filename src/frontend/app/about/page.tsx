@@ -16,7 +16,7 @@ export default function AboutPage() {
         fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
         mollit anim id est laborum.
       </p>
-      <h2 className="text-3xl font-semibold mb-4 mt-8">Methodology</h2>
+      <h2 className="text-3xl font-bold mb-4 mt-8">Methodology</h2>
       <p className="text-lg text-gray-700 leading-relaxed mb-4">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
         dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
@@ -24,7 +24,7 @@ export default function AboutPage() {
         fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
         mollit anim id est laborum.
       </p>
-      <h2 className="text-3xl font-semibold mb-4 mt-8">Team</h2>
+      <h2 className="text-3xl font-bold mb-4 mt-8">Team</h2>
       <p className="text-lg text-gray-700 leading-relaxed">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
         dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip

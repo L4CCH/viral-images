@@ -1,18 +1,18 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import date as date_type
 
 
 class ClusterDates(BaseModel):
     """Date range for a cluster."""
-    first_year: int = Field(..., description="First year of publication in the cluster")
-    last_year: int = Field(..., description="Last year of publication in the cluster")
+    start_date: str = Field(..., description="Start date of publication in the cluster (YYYY-MM-DD format)")
+    end_date: str = Field(..., description="End date of publication in the cluster (YYYY-MM-DD format)")
 
     class Config:
         json_schema_extra = {
             "example": {
-                "first_year": 1910,
-                "last_year": 1915
+                "start_date": "1910-01-01",
+                "end_date": "1915-12-31"
             }
         }
 
@@ -31,8 +31,8 @@ class Cluster(BaseModel):
             "example": {
                 "id": "cluster_123",
                 "dates": {
-                    "first_year": 1910,
-                    "last_year": 1915
+                    "start_date": "1910-01-01",
+                    "end_date": "1915-12-31"
                 },
                 "newspapers": ["The New York Times", "The Washington Post"],
                 "publishers": ["Publisher A", "Publisher B"],
@@ -69,6 +69,95 @@ class Image(BaseModel):
                 "iiif": "http://example.com/image/nbu_irons_ver01_data_2010270504_00237284768_1918102201_0615_004_0_96/annotation.json",
                 "cluster": "1241",
                 "ocr": ""
+            }
+        }
+
+
+class Facets(BaseModel):
+    """Facets schema containing newspaper and publisher facets with cluster counts."""
+    newspapers: Dict[str, int] = Field(..., description="Dictionary of newspaper names to cluster counts")
+    publishers: Dict[str, int] = Field(..., description="Dictionary of publisher names to cluster counts")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "newspapers": {
+                    "The New York Times": 42,
+                    "The Washington Post": 35
+                },
+                "publishers": {
+                    "Publisher A": 28,
+                    "Publisher B": 19
+                }
+            }
+        }
+
+
+class YearCount(BaseModel):
+    """A single year with its cluster count."""
+    year: int = Field(..., description="Year")
+    count: int = Field(..., description="Number of unique clusters in this year")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "year": 1910,
+                "count": 42
+            }
+        }
+
+
+class TimelineHistogram(BaseModel):
+    """Timeline histogram schema containing year counts for cluster distribution."""
+    year_counts: List[YearCount] = Field(..., description="List of years with cluster counts")
+    total_clusters: int = Field(..., description="Total number of clusters across all years")
+    min_year: int = Field(..., description="Earliest year in the dataset")
+    max_year: int = Field(..., description="Latest year in the dataset")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "year_counts": [
+                    {"year": 1910, "count": 42},
+                    {"year": 1911, "count": 35},
+                    {"year": 1912, "count": 28}
+                ],
+                "total_clusters": 105,
+                "min_year": 1910,
+                "max_year": 1912
+            }
+        }
+
+
+class DatasetMetadata(BaseModel):
+    """Dataset metadata schema."""
+    id: str = Field(..., description="Dataset identifier")
+    about: Dict[str, str] = Field(..., description="About information")
+    dates: Dict[str, str] = Field(..., description="Date range with start_date and end_date in YYYY-MM-DD format")
+    clusters: int = Field(..., description="Number of unique clusters")
+    images: int = Field(..., description="Total number of images")
+    newspapers: int = Field(..., description="Number of unique newspapers")
+    publishers: int = Field(..., description="Number of unique publishers")
+    columns: str = Field(..., description="List of dataset columns")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": "viral_images_api",
+                "about": {
+                    "title": "Viral Images API",
+                    "description": "API for viral images dataset",
+                    "version": "1.0.0"
+                },
+                "dates": {
+                    "start_date": "1910-01-01",
+                    "end_date": "1915-12-31"
+                },
+                "clusters": 1000,
+                "images": 5000,
+                "newspapers": 50,
+                "publishers": 30,
+                "columns": "['filepath', 'pub_date', 'name', 'publisher', ...]"
             }
         }
 

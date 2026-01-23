@@ -76,7 +76,7 @@ export function ImageClusters({ startYear, endYear, imageClusters, currentCluste
         });
       }
     }
-  }, [selectedImageIndex, filteredImages, currentCluster]);
+  }, [selectedImageIndex, filteredImages]);
 
   
 

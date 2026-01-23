@@ -11,7 +11,7 @@ export default function FAQPage() {
       <h1 className="text-4xl font-bold mb-6">Frequently Asked Questions [Coming Soon]</h1>
 
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">What is Viral Images?</h2>
+        <h2 className="text-2xl font-bold mb-2">What is Viral Images?</h2>
         <p className="text-lg text-gray-700 leading-relaxed">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
           dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
@@ -22,7 +22,7 @@ export default function FAQPage() {
       </div>
 
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">How do you identify "viral" images?</h2>
+        <h2 className="text-2xl font-bold mb-2">How do you identify "viral" images?</h2>
         <p className="text-lg text-gray-700 leading-relaxed">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
           dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
@@ -33,7 +33,7 @@ export default function FAQPage() {
       </div>
 
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">What kind of data do you use?</h2>
+        <h2 className="text-2xl font-bold mb-2">What kind of data do you use?</h2>
         <p className="text-lg text-gray-700 leading-relaxed">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
           dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
@@ -44,7 +44,7 @@ export default function FAQPage() {
       </div>
 
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">Can I contribute to the project?</h2>
+        <h2 className="text-2xl font-bold mb-2">Can I contribute to the project?</h2>
         <p className="text-lg text-gray-700 leading-relaxed">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
           dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
@@ -55,7 +55,7 @@ export default function FAQPage() {
       </div>
 
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">Is the data publicly available?</h2>
+        <h2 className="text-2xl font-bold mb-2">Is the data publicly available?</h2>
         <p className="text-lg text-gray-700 leading-relaxed">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
           dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip

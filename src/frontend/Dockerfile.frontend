@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:20-slim
+FROM node:22-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -13,8 +13,12 @@ RUN npm install -g pnpm && pnpm install
 # Copy the rest of the application code
 COPY . .
 
+# Enable file watching polling for Docker environments
+ENV WATCHPACK_POLLING=true
+ENV CHOKIDAR_USEPOLLING=true
+
 # Make port 3000 available to the world outside this container
 EXPOSE 3000
 
 # Run the app when the container launches
-CMD ["pnpm", "run", "dev"]
+CMD ["pnpm", "dev", "--hostname", "0.0.0.0"]

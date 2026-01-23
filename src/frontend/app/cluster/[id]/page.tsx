@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ClusterDetailsClient } from "@/components/cluster-details-client";
 import { useParams } from 'next/navigation';
 import React from 'react';
+import { FilterProvider } from "@/contexts/filter-context";
 
 export default function ClusterPage() {
   const params = useParams();
@@ -22,8 +23,10 @@ export default function ClusterPage() {
   }
 
   return (
-    <ClusterDetailsClient
-      clusterKey={id}
-    />
+    <FilterProvider>
+      <ClusterDetailsClient
+        clusterKey={id}
+      />
+    </FilterProvider>
   );
 }

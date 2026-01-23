@@ -1,65 +1,99 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Timeline } from "@/components/timeline";
 import { ClusterList } from "@/components/cluster-list";
-import { MetadataItem } from "@/lib/types";
 import FacetSidebar from '@/components/facet-sidebar';
+import { searchClusters, type BackendCluster } from '@/lib/api';
+import { useFilters } from '@/contexts/filter-context';
 
 export interface ClusterData {
   id: string;
   imagePaths: string[];
-  firstImageMeta?: MetadataItem;
-  newspaperName?: string;
-  publisherName?: string;
+  dates: {
+    start_date: string; // YYYY-MM-DD format
+    end_date: string; // YYYY-MM-DD format
+  };
+  newspapers: string[];
+  publishers: string[];
+  thumbnail: string;
 }
 
 export default function HomeClient() {
-  const [currentStartYear, setCurrentStartYear] = useState(1756);
-  const [currentEndYear, setCurrentEndYear] = useState(1963);
+  // Get filter state from context
+  const { startYear, endYear, selectedNewspapers, selectedPublishers } = useFilters();
+  
   const [allClusters, setAllClusters] = useState<ClusterData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20; // Number of items to load per page
-  
+  const [hasMore, setHasMore] = useState(true);
+  const backendLimit = 50; // Backend limit per request
   
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedNewspapers, setSelectedNewspapers] = useState<string[]>([]);
-  const [selectedPublishers, setSelectedPublishers] = useState<string[]>([]);
 
+  // Minimal transformation - backend already provides all needed data
+  const formatClusters = (backendClusters: BackendCluster[]): ClusterData[] => {
+    return backendClusters.map((cluster: BackendCluster) => ({
+      id: cluster.id,
+      imagePaths: cluster.images,
+      dates: cluster.dates,
+      newspapers: cluster.newspapers,
+      publishers: cluster.publishers,
+      thumbnail: cluster.thumbnail,
+    }));
+  };
+
+
+  // Track if this is the initial mount to avoid double-fetching
+  const isInitialMount = useRef(true);
+
+  // Fetch clusters on mount and when filters change
   useEffect(() => {
-    const fetchData = async () => {
+    const loadClusters = async () => {
       try {
-        setLoading(true);
-        const [clustersRes, metadataRes] = await Promise.all([
-          fetch('/api/data?type=clusters'),
-          fetch('/api/data?type=metadata'),
-        ]);
-
-        if (!clustersRes.ok) throw new Error('Failed to fetch clusters');
-        if (!metadataRes.ok) throw new Error('Failed to fetch metadata');
-
-        const clustersData = await clustersRes.json();
-        const metadataData: MetadataItem[] = await metadataRes.json();
+        if (isInitialMount.current) {
+          isInitialMount.current = false;
+        } else {
+          setLoading(true);
+          setError(null);
+        }
         
+        setCurrentPage(1);
 
-        const metadataMap = new Map(metadataData.map((item) => [item.filepath, item]));
-        
-        
+        // Build search params with current filters
+        const searchParams: any = {
+          page: 1,
+          limit: backendLimit,
+        };
 
-        
+        // Add date filters
+        if (startYear || endYear) {
+          searchParams.start_date = `${startYear}-01-01`;
+          searchParams.end_date = `${endYear}-12-31`;
+        }
 
-        const formattedClusters: ClusterData[] = Object.entries(clustersData).map(([id, imagePaths]) => ({
-          id,
-          imagePaths: Array.isArray(imagePaths) ? imagePaths as string[] : [],
-          firstImageMeta: (imagePaths as string[]).length > 0 ? metadataMap.get((imagePaths as string[])[0]) : undefined,
-          newspaperName: (imagePaths as string[]).length > 0 ? metadataMap.get((imagePaths as string[])[0])?.name : undefined,
-          publisherName: (imagePaths as string[]).length > 0 ? metadataMap.get((imagePaths as string[])[0])?.publisher : undefined,
-        }));
+        // Add newspaper filter
+        if (selectedNewspapers.length > 0) {
+          searchParams.newspaper_name = selectedNewspapers[0];
+        }
 
+        // Add publisher filter
+        if (selectedPublishers.length > 0) {
+          searchParams.publisher = selectedPublishers[0];
+        }
+
+        console.log(`Fetching clusters page 1 with filters:`, searchParams);
+        const backendClusters = await searchClusters(searchParams);
+        console.log(`Fetched ${backendClusters.length} clusters`);
+
+        const formattedClusters = formatClusters(backendClusters);
         setAllClusters(formattedClusters);
 
+        // Check if there are more clusters to load
+        setHasMore(backendClusters.length === backendLimit);
       } catch (err: unknown) {
+        console.error('Error fetching data:', err);
         if (err instanceof Error) {
           setError(err.message);
         } else {
@@ -67,62 +101,65 @@ export default function HomeClient() {
         }
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     };
 
-    fetchData();
-  }, []);
+    loadClusters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startYear, endYear, selectedNewspapers, selectedPublishers]);
 
-  const handleDateRangeChange = (start: number, end: number) => {
-    setCurrentStartYear(start);
-    setCurrentEndYear(end);
-  };
+  // Load more clusters for pagination
+  const loadMoreClusters = useCallback(async () => {
+    if (!loadingMore && hasMore && !loading) {
+      try {
+        setLoadingMore(true);
+        const nextPage = currentPage + 1;
+        setCurrentPage(nextPage);
 
-  const handleNewspaperFilterChange = (newspaper: string) => {
-    setSelectedNewspapers(prev =>
-      prev.includes(newspaper)
-        ? prev.filter(n => n !== newspaper)
-        : [...prev, newspaper]
-    );
-  };
+        // Build search params with current filters
+        const searchParams: any = {
+          page: nextPage,
+          limit: backendLimit,
+        };
 
-  const handlePublisherFilterChange = (publisher: string) => {
-    setSelectedPublishers(prev =>
-      prev.includes(publisher)
-        ? prev.filter(p => p !== publisher)
-        : [...prev, publisher]
-    );
-  };
+        // Add date filters
+        if (startYear || endYear) {
+          searchParams.start_date = `${startYear}-01-01`;
+          searchParams.end_date = `${endYear}-12-31`;
+        }
 
-  const dateFilteredClusters = useMemo(() => {
-    return allClusters.filter(cluster => {
-      if (!cluster.firstImageMeta?.pub_date) return false;
-      const year = new Date(cluster.firstImageMeta.pub_date).getFullYear();
-      return year >= currentStartYear && year <= currentEndYear;
-    });
-  }, [allClusters, currentStartYear, currentEndYear]);
+        // Add newspaper filter
+        if (selectedNewspapers.length > 0) {
+          searchParams.newspaper_name = selectedNewspapers[0];
+        }
 
-  const combinedFilteredClusters = useMemo(() => {
-    const filtered = dateFilteredClusters.filter(cluster => {
-      if (!cluster.firstImageMeta) return false;
+        // Add publisher filter
+        if (selectedPublishers.length > 0) {
+          searchParams.publisher = selectedPublishers[0];
+        }
 
-      const newspaperMatch = selectedNewspapers.length === 0 || selectedNewspapers.includes(cluster.firstImageMeta.name);
-      const publisherMatch = selectedPublishers.length === 0 || (cluster.firstImageMeta.publisher && selectedPublishers.includes(cluster.firstImageMeta.publisher));
+        console.log(`Fetching clusters page ${nextPage} with filters:`, searchParams);
+        const backendClusters = await searchClusters(searchParams);
+        console.log(`Fetched ${backendClusters.length} clusters`);
 
-      return newspaperMatch && publisherMatch;
-    });
-    return filtered;
-  }, [dateFilteredClusters, selectedNewspapers, selectedPublishers]);
+        const formattedClusters = formatClusters(backendClusters);
+        setAllClusters(prev => [...prev, ...formattedClusters]);
 
-  const displayedClusters = useMemo(() => {
-    return combinedFilteredClusters.slice(0, currentPage * itemsPerPage);
-  }, [combinedFilteredClusters, currentPage, itemsPerPage]);
-
-  const hasMore = displayedClusters.length < combinedFilteredClusters.length;
-
-  const loadMoreClusters = () => {
-    setCurrentPage(prevPage => prevPage + 1);
-  };
+        // Check if there are more clusters to load
+        setHasMore(backendClusters.length === backendLimit);
+      } catch (err: unknown) {
+        console.error('Error fetching more clusters:', err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+      } finally {
+        setLoadingMore(false);
+      }
+    }
+  }, [loadingMore, hasMore, loading, currentPage, startYear, endYear, selectedNewspapers, selectedPublishers, backendLimit]);
 
 
   if (loading) {
@@ -135,28 +172,18 @@ export default function HomeClient() {
 
   return (
     <div className="flex">
-      <FacetSidebar
-        clusters={allClusters}
-        selectedNewspapers={selectedNewspapers}
-        onNewspaperFilterChange={handleNewspaperFilterChange}
-        selectedPublishers={selectedPublishers}
-        onPublisherFilterChange={handlePublisherFilterChange}
-      />
+      <FacetSidebar />
       <main className="flex-1 px-4 py-4">
         {/* <h1 className="text-3xl font-bold mb-8 text-center">Viral Images</h1> */}
-        <Timeline
-          startYear={currentStartYear}
-          endYear={currentEndYear}
-          onDateRangeChange={handleDateRangeChange}
-          clusters={allClusters}
-        />
+        <Timeline />
         <ClusterList
-          startYear={currentStartYear}
-          endYear={currentEndYear}
-          clusters={displayedClusters}
+          clusters={allClusters}
           loadMore={loadMoreClusters}
           hasMore={hasMore}
         />
+        {loadingMore && (
+          <div className="px-4 py-4 text-center text-gray-500">Loading more clusters...</div>
+        )}
       </main>
     </div>
   );

@@ -65,8 +65,8 @@ class DataService:
             return {}
 
         df = self.dataset_df
-        first_date = df["pub_date"].min().year
-        last_date = df["pub_date"].max().year
+        start_date = df["pub_date"].min()
+        end_date = df["pub_date"].max()
         unique_newspapers = df["name"].nunique()
         unique_clusters = df["cluster_id"].nunique()
         unique_publishers = df["publisher"].nunique()
@@ -79,8 +79,8 @@ class DataService:
                 "version": settings.api_version,
             },
             "dates": {
-                "first_year": f"{first_date}",
-                "last_year": f"{last_date}",
+                "start_date": start_date.strftime("%Y-%m-%d"),
+                "end_date": end_date.strftime("%Y-%m-%d"),
             },
             "clusters": unique_clusters,
             "images": len(df),
@@ -88,44 +88,6 @@ class DataService:
             "publishers": unique_publishers,
             "columns": f"{list(df.columns)}",
         }
-
-    def get_all_clusters(self, page: int = 1, limit: int = 10) -> List[Dict[str, Any]]:
-        if self.dataset_df is None:
-            return []
-
-        df = self.dataset_df
-        unique_clusters = df["cluster_id"].unique()
-        
-        clusters = []
-        for cluster_id in unique_clusters:
-            cluster_data = df[df["cluster_id"] == cluster_id]
-            image_paths = [row["filepath"] for _, row in cluster_data.iterrows()]
-            
-            # Get thumbnail URL from first image and resize it
-            thumbnail = ""
-            if image_paths:
-                first_image = cluster_data.iloc[0]
-                if pd.notna(first_image["prediction_section_iiif_url"]):
-                    thumbnail = _resize_iiif_thumbnail(first_image["prediction_section_iiif_url"])
-            
-            clusters.append({
-                "id": f"{cluster_id}",
-                "dates": {
-                    "first_year": cluster_data["pub_date"].min().year,
-                    "last_year": cluster_data["pub_date"].max().year,
-                },
-                "newspapers": _filter_none_values(cluster_data["name"].unique().tolist()),
-                "publishers": _filter_none_values(cluster_data["publisher"].unique().tolist()),
-                "images": image_paths,
-                "thumbnail": thumbnail,
-            })
-        
-        # Apply pagination
-        start_index = (page - 1) * limit
-        end_index = start_index + limit
-        paginated_clusters = clusters[start_index:end_index]
-        
-        return paginated_clusters
 
     def get_cluster(self, cluster_id: str) -> Optional[Dict[str, Any]]:
         if self.dataset_df is None:
@@ -151,8 +113,8 @@ class DataService:
         return {
             "id": f"{cluster_id}",
             "dates": {
-                "first_year": cluster_data["pub_date"].min().year,
-                "last_year": cluster_data["pub_date"].max().year,
+                "start_date": cluster_data["pub_date"].min().strftime("%Y-%m-%d"),
+                "end_date": cluster_data["pub_date"].max().strftime("%Y-%m-%d"),
             },
             "newspapers": _filter_none_values(cluster_data["name"].unique().tolist()),
             "publishers": _filter_none_values(cluster_data["publisher"].unique().tolist()),
@@ -209,6 +171,8 @@ class DataService:
         publisher: Optional[str] = None,
         page: int = 1,
         limit: int = 10,
+        order_by: Optional[str] = None,
+        order_direction: str = "desc",
     ) -> List[Dict[str, Any]]:
         if self.dataset_df is None:
             return []
@@ -246,6 +210,22 @@ class DataService:
         )
         clustered_results.columns = ["cluster_id", "images", "min_date", "max_date", "newspapers", "publishers", "thumbnail"]
 
+        # Calculate counts for sorting
+        clustered_results["newspaper_count"] = clustered_results["newspapers"].apply(
+            lambda x: len([n for n in x if n is not None and pd.notna(n)])
+        )
+        clustered_results["publisher_count"] = clustered_results["publishers"].apply(
+            lambda x: len([p for p in x if p is not None and pd.notna(p)])
+        )
+        clustered_results["image_count"] = clustered_results["images"].apply(len)
+
+        # Sort - default to image_count desc if not specified
+        sort_by = order_by if order_by else "image_count"
+        sort_direction = order_direction if order_by else "desc"  # Default desc for image_count
+        ascending = sort_direction == "asc"
+        clustered_results = clustered_results.sort_values(by=sort_by, ascending=ascending)
+
+        # Apply pagination after sorting
         start_index = (page - 1) * limit
         end_index = start_index + limit
         paginated_clusters = clustered_results.iloc[start_index:end_index]
@@ -254,8 +234,8 @@ class DataService:
             {
                 "id": f"{row['cluster_id']}",
                 "dates": {
-                    "first_year": row["min_date"].year,
-                    "last_year": row["max_date"].year,
+                    "start_date": row["min_date"].strftime("%Y-%m-%d"),
+                    "end_date": row["max_date"].strftime("%Y-%m-%d"),
                 },
                 "newspapers": _filter_none_values(row["newspapers"]),
                 "publishers": _filter_none_values(row["publishers"]),
@@ -264,3 +244,128 @@ class DataService:
             }
             for _, row in paginated_clusters.iterrows()
         ]
+
+    def get_facets(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Get facets (newspapers and publishers) with cluster counts.
+        
+        Args:
+            start_date: Optional start date for filtering
+            end_date: Optional end date for filtering
+            
+        Returns:
+            Dictionary with 'newspapers' and 'publishers' lists, each containing
+            FacetItem-like dictionaries with 'name' and 'count' fields
+        """
+        if self.dataset_df is None:
+            return {"newspapers": [], "publishers": []}
+
+        df = self.dataset_df.copy()
+
+        # Apply date filtering if provided
+        if start_date:
+            df = df[df["pub_date"] >= pd.to_datetime(start_date)]
+        if end_date:
+            df = df[df["pub_date"] <= pd.to_datetime(end_date)]
+
+        # Compute newspaper facets: count unique clusters per newspaper
+        newspaper_facets = {}
+        if len(df) > 0:
+            # Group by newspaper name and count unique cluster_ids
+            newspaper_counts = (
+                df[df["name"].notna()]
+                .groupby("name")["cluster_id"]
+                .nunique()
+            )
+            
+            # Convert to dictionary: {name: count}
+            newspaper_facets = {str(name): int(count) for name, count in newspaper_counts.items()}
+            # Sort by key alphabetically
+            newspaper_facets = dict(sorted(newspaper_facets.items()))
+
+        # Compute publisher facets: count unique clusters per publisher
+        publisher_facets = {}
+        if len(df) > 0:
+            # Group by publisher and count unique cluster_ids
+            publisher_counts = (
+                df[df["publisher"].notna()]
+                .groupby("publisher")["cluster_id"]
+                .nunique()
+            )
+            
+            # Convert to dictionary: {name: count}
+            publisher_facets = {str(name): int(count) for name, count in publisher_counts.items()}
+            # Sort by key alphabetically
+            publisher_facets = dict(sorted(publisher_facets.items()))
+
+        return {
+            "newspapers": newspaper_facets,
+            "publishers": publisher_facets,
+        }
+
+    def get_timeline_histogram(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> Dict[str, Any]:
+        """
+        Get timeline histogram data (cluster counts per year).
+        
+        Args:
+            start_date: Optional start date for filtering
+            end_date: Optional end date for filtering
+            
+        Returns:
+            Dictionary with 'year_counts', 'total_clusters', 'min_year', 'max_year'
+        """
+        if self.dataset_df is None:
+            return {
+                "year_counts": [],
+                "total_clusters": 0,
+                "min_year": 1700,
+                "max_year": 2024,
+            }
+
+        df = self.dataset_df.copy()
+
+        # Apply date filtering if provided
+        if start_date:
+            df = df[df["pub_date"] >= pd.to_datetime(start_date)]
+        if end_date:
+            df = df[df["pub_date"] <= pd.to_datetime(end_date)]
+
+        # Compute year histogram: count unique clusters per year
+        year_counts = []
+        if len(df) > 0:
+            # Extract year from pub_date and group by year, count unique cluster_ids
+            df["year"] = df["pub_date"].dt.year
+            year_cluster_counts = (
+                df[df["year"].notna()]
+                .groupby("year")["cluster_id"]
+                .nunique()
+                .reset_index()
+            )
+            year_cluster_counts.columns = ["year", "count"]
+            
+            # Convert to list of dictionaries and sort by year
+            year_counts = [
+                {"year": int(row["year"]), "count": int(row["count"])}
+                for _, row in year_cluster_counts.iterrows()
+            ]
+            year_counts.sort(key=lambda x: x["year"])
+
+        # Calculate totals and min/max years
+        total_clusters = sum(item["count"] for item in year_counts) if year_counts else 0
+        min_year = min(item["year"] for item in year_counts) if year_counts else 1700
+        max_year = max(item["year"] for item in year_counts) if year_counts else 2024
+
+        return {
+            "year_counts": year_counts,
+            "total_clusters": total_clusters,
+            "min_year": min_year,
+            "max_year": max_year,
+        }

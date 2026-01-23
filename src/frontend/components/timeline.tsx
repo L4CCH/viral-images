@@ -1,53 +1,64 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Slider } from "@/components/ui/slider"
 import { Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-
-
-
-interface ClusterData {
-  id: string;
-  imagePaths: string[];
-  firstImageMeta?: { pub_date?: string };
-}
+import { getTimelineHistogram, type TimelineHistogram } from "@/lib/api"
+import { useFilters } from "@/contexts/filter-context"
 
 interface TimelineProps {
-  onDateRangeChange: (startYear: number, endYear: number) => void;
-  startYear: number;
-  endYear: number;
   activeStartYear?: number;
   activeEndYear?: number;
-  clusters: ClusterData[];
 }
 
-export function Timeline({ onDateRangeChange, startYear, endYear, activeStartYear, activeEndYear, clusters: clustersProp }: TimelineProps) {
+export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
+  // Get filter state and handlers from context
+  const { startYear, endYear, handleDateRangeChange } = useFilters();
   const [zoomLevel] = useState(1)
+  const [histogram, setHistogram] = useState<TimelineHistogram | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const clusters = clustersProp || [];
-
-  const minYear = 1700
-  const maxYear = 2024
-
-  const getImageCountsPerYear = () => {
-    const counts: { [year: number]: number } = {};
-
-    (clusters || []).forEach((cluster) => {
-      if (!cluster.firstImageMeta?.pub_date) return;
-
-      const year = new Date(cluster.firstImageMeta.pub_date).getFullYear();
-
-      if (!isNaN(year)) {
-        counts[year] = (counts[year] || 0) + cluster.imagePaths.length;
+  // Fetch histogram from backend
+  useEffect(() => {
+    const fetchHistogram = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const params: { start_date?: string; end_date?: string } = {};
+        if (startYear) {
+          params.start_date = `${startYear}-01-01`;
+        }
+        if (endYear) {
+          params.end_date = `${endYear}-12-31`;
+        }
+        
+        const fetchedHistogram = await getTimelineHistogram(params);
+        setHistogram(fetchedHistogram);
+      } catch (err) {
+        console.error('Error fetching timeline histogram:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load timeline histogram');
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchHistogram();
+  }, [startYear, endYear]);
+
+  // Convert histogram year_counts to a map for easier lookup
+  const yearCountsMap: { [year: number]: number } = {};
+  if (histogram) {
+    histogram.year_counts.forEach(item => {
+      yearCountsMap[item.year] = item.count;
     });
+  }
 
-    return counts;
-  };
-
-  const imageCountsPerYear = getImageCountsPerYear()
-  const maxCount = Math.max(...Object.values(imageCountsPerYear))
+  const minYear = histogram?.min_year ?? 1700
+  const maxYear = histogram?.max_year ?? 2024
+  const maxCount = histogram ? Math.max(...histogram.year_counts.map(item => item.count), 0) : 0
 
   // Generate year markers based on zoom level
   const getYearMarkers = () => {
@@ -65,7 +76,7 @@ export function Timeline({ onDateRangeChange, startYear, endYear, activeStartYea
 
   const handleRangeChange = (value: number[]) => {
     const [newStartYear, newEndYear] = value
-    onDateRangeChange(newStartYear, newEndYear)
+    handleDateRangeChange(newStartYear, newEndYear)
   }
 
   const getMarkerPosition = (year: number) => {
@@ -134,24 +145,35 @@ export function Timeline({ onDateRangeChange, startYear, endYear, activeStartYea
           )}
 
           {/* Histogram bars */}
-          {Object.entries(imageCountsPerYear).map(([year, count]) => {
-            const yearNum = Number.parseInt(year)
-            const isInRange = yearNum >= startYear && yearNum <= endYear
-            return (
-              <div
-                key={year}
-                className={`absolute bottom-0 bg-primary/70 hover:bg-primary transition-colors cursor-pointer ${
-                  isInRange ? "opacity-100" : "opacity-40"
-                }`}
-                style={{
-                  left: `${getMarkerPosition(yearNum)}%`,
-                  width: `${Math.max(0.5, (1 / (maxYear - minYear)) * 100 * (zoomLevel >= 2 ? 3 : zoomLevel >= 1.5 ? 2 : 1))}%`,
-                  height: `${getBarHeight(count)}px`,
-                }}
-                title={`${year}: ${count} images`}
-              />
-            )
-          })}
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+              Loading histogram...
+            </div>
+          ) : error ? (
+            <div className="absolute inset-0 flex items-center justify-center text-xs text-destructive">
+              Error: {error}
+            </div>
+          ) : (
+            histogram?.year_counts.map((item) => {
+              const yearNum = item.year
+              const count = item.count
+              const isInRange = yearNum >= startYear && yearNum <= endYear
+              return (
+                <div
+                  key={yearNum}
+                  className={`absolute bottom-0 bg-primary/70 hover:bg-primary transition-colors cursor-pointer ${
+                    isInRange ? "opacity-100" : "opacity-40"
+                  }`}
+                  style={{
+                    left: `${getMarkerPosition(yearNum)}%`,
+                    width: `${Math.max(0.5, (1 / (maxYear - minYear)) * 100 * (zoomLevel >= 2 ? 3 : zoomLevel >= 1.5 ? 2 : 1))}%`,
+                    height: `${getBarHeight(count)}px`,
+                  }}
+                  title={`${yearNum}: ${count} clusters`}
+                />
+              )
+            })
+          )}
 
           {/* Range slider handles indicators */}
           <div

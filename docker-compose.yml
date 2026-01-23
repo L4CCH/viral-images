@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -64,8 +62,10 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
     env_file:
-      - ./src/frontend/.env.local
+      - ./src/frontend/.env.local  # Optional - will be ignored if file doesn't exist
     networks:
       - viral-images-network
     depends_on:
@@ -73,13 +73,7 @@ services:
         condition: service_healthy
         required: false  # Allow frontend to start even if backend isn't ready
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))\""]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    command: pnpm run dev
+    command: pnpm run dev --hostname 0.0.0.0 --port 3000
 
 networks:
   viral-images-network:

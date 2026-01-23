@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,13 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 interface ClusterData {
   id: string;
   imagePaths: string[];
-  firstImageMeta?: { pub_date?: string; prediction_section_iiif_url?: string; name?: string; };
+  dates: {
+    start_date: string; // YYYY-MM-DD format
+    end_date: string; // YYYY-MM-DD format
+  };
+  newspapers: string[];
+  publishers: string[];
+  thumbnail: string;
 }
 
 interface Cluster {
@@ -24,14 +30,10 @@ interface Cluster {
 }
 
 export function ClusterList({
-  startYear,
-  endYear,
   clusters,
   loadMore,
   hasMore,
 }: {
-  startYear: number;
-  endYear: number;
   clusters: ClusterData[];
   loadMore: () => void;
   hasMore: boolean;
@@ -40,6 +42,8 @@ export function ClusterList({
   const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
+  const isLoadingRef = useRef(false);
+  const loadMoreRef = useRef(loadMore);
 
   useEffect(() => {
     if (!clusters) {
@@ -47,49 +51,70 @@ export function ClusterList({
       return;
     }
 
+    // Use backend data directly - no unnecessary computation
     const processed = clusters.map((cluster: ClusterData) => {
-      const dates = cluster.imagePaths
-            .map(() => (cluster.firstImageMeta?.pub_date ? new Date(cluster.firstImageMeta.pub_date).getFullYear() : 0))
-            .filter((y: number) => y > 0);
-
-      const clusterStartYear = dates.length > 0 ? Math.min(...dates) : 0;
-      const clusterEndYear = dates.length > 0 ? Math.max(...dates) : 0;
-
+      const startYear = parseInt(cluster.dates.start_date.split('-')[0]);
+      const endYear = parseInt(cluster.dates.end_date.split('-')[0]);
       return {
         id: cluster.id,
         title: `Cluster ${cluster.id}`,
         imageCount: cluster.imagePaths.length,
-        featureImage: cluster.firstImageMeta?.prediction_section_iiif_url || '/file.svg',
-        alt: cluster.firstImageMeta ? `${cluster.firstImageMeta.name || 'Unknown'} - ${cluster.firstImageMeta.pub_date || 'Unknown'}` : "Cluster image",
-        startYear: clusterStartYear,
-        endYear: clusterEndYear
+        featureImage: cluster.thumbnail || '/file.svg',
+        alt: cluster.newspapers.length > 0 
+          ? `${cluster.newspapers[0]} - ${startYear}` 
+          : "Cluster image",
+        startYear,
+        endYear
       };
     });
     setProcessedClusters(processed);
   }, [clusters]);
 
+  // Keep loadMore ref up to date
   useEffect(() => {
+    loadMoreRef.current = loadMore;
+  }, [loadMore]);
+
+  useEffect(() => {
+    // Don't set up observer if there's no more to load
+    if (!hasMore) {
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          loadMore();
+        const entry = entries[0];
+        // Only trigger if:
+        // 1. The target is intersecting
+        // 2. We have more to load
+        // 3. We're not already loading
+        if (entry.isIntersecting && hasMore && !isLoadingRef.current) {
+          isLoadingRef.current = true;
+          // Use the ref to call the latest loadMore function
+          loadMoreRef.current();
+          // Reset loading flag after a short delay to prevent rapid-fire calls
+          setTimeout(() => {
+            isLoadingRef.current = false;
+          }, 1000);
         }
       },
       {
-        rootMargin: '200px',
+        rootMargin: '100px', // Reduced from 200px to be less aggressive
+        threshold: 0.1, // Require at least 10% visibility
       }
     );
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
     }
 
     return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loadMore]);
+  }, [hasMore]);
 
   
 
@@ -172,7 +197,9 @@ export function ClusterList({
           </Card>
         </Link>
       ))}
-      <div ref={observerTarget} className="h-1"></div>
+      {hasMore && (
+        <div ref={observerTarget} className="h-20 w-full" aria-hidden="true"></div>
+      )}
     </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 import { MetadataItem, Cluster, SimilarImage } from "@/lib/types";
+import { getCluster, getImages, type BackendImage } from "@/lib/api";
 
 interface ClusterDetailsClientProps {
   clusterKey: string;
@@ -24,58 +25,52 @@ export function ClusterDetailsClient({ clusterKey }: ClusterDetailsClientProps) 
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [clustersRes, metadataRes] = await Promise.all([
-          fetch('/api/data?type=clusters'),
-          fetch('/api/data?type=metadata'),
-        ]);
+        
+        // Fetch the cluster from backend
+        const clusterData = await getCluster(clusterKey);
+        
+        // Fetch all images for this cluster
+        const imageData: BackendImage[] = await getImages(clusterData.images);
+        
+        // Convert backend images to SimilarImage format
+        const similarImages: SimilarImage[] = imageData.map((img) => ({
+          id: img.id,
+          src: img.url,
+          alt: `${img.newspaper || 'Unknown'} - ${img.date}`,
+          date: img.date,
+          publication: img.newspaper || '',
+          publisher: img.publisher || '',
+          place_of_publication: img.place || '',
+          caption: `Published in ${img.newspaper || 'Unknown'} on ${img.date}.`,
+        }));
 
-        if (!clustersRes.ok) throw new Error('Failed to fetch clusters');
-        if (!metadataRes.ok) throw new Error('Failed to fetch metadata');
+        // Convert to MetadataItem format for compatibility
+        const metadataData: MetadataItem[] = imageData.map((img) => ({
+          filepath: img.id,
+          pub_date: img.date,
+          name: img.newspaper || '',
+          publisher: img.publisher || '',
+          place_of_publication: img.place || '',
+          prediction_section_iiif_url: img.url,
+        }));
 
-        const clustersData = await clustersRes.json();
-        const metadataData: MetadataItem[] = await metadataRes.json();
+        // Create Cluster object
+        const processedCluster: Cluster = {
+          id: clusterData.id,
+          title: `Cluster ${clusterData.id}`,
+          description: "A cluster of visually similar images from historical newspapers.",
+          similarImages,
+          alternatePublications: [],
+        };
 
-        const metadataMap = new Map(metadataData.map((item) => [item.filepath, item]));
+        setImageClusters([processedCluster]);
+        setMetadata(metadataData);
 
-        const processedClusters: Cluster[] = Object.entries(clustersData).map(([id, imagePaths]) => {
-          const similarImages: SimilarImage[] = (imagePaths as string[])
-            .map((filepath) => {
-              const meta = metadataMap.get(filepath);
-              if (!meta) {
-                return null;
-              }
-              return {
-                id: filepath,
-                src: meta.prediction_section_iiif_url,
-                alt: `${meta.name} - ${meta.pub_date}`,
-                date: meta.pub_date,
-                publication: meta.name,
-                publisher: meta.publisher,
-                place_of_publication: meta.place_of_publication,
-                caption: `Published in ${meta.name} on ${meta.pub_date}.`,
-              };
-            })
-            .filter((image): image is SimilarImage => image !== null);
-
-          return {
-            id,
-            title: `Cluster ${id}`,
-            description: "A cluster of visually similar images from historical newspapers.",
-            similarImages,
-            alternatePublications: [],
-          };
-        });
-        setImageClusters(processedClusters);
-
-        const currentCluster = processedClusters.find((c) => c.id === clusterKey);
-        if (currentCluster) {
-          const dates = currentCluster.similarImages.map((image) => new Date(image.date).getFullYear());
-          if (dates.length > 0) {
-            setStartYear(Math.min(...dates));
-            setEndYear(Math.max(...dates));
-          }
-        }
-        setMetadata(metadataData); // Keep metadata for potential future use or other components
+        // Set date range from cluster dates - parse YYYY-MM-DD format
+        const startYear = parseInt(clusterData.dates.start_date.split('-')[0]);
+        const endYear = parseInt(clusterData.dates.end_date.split('-')[0]);
+        setStartYear(startYear);
+        setEndYear(endYear);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -89,11 +84,6 @@ export function ClusterDetailsClient({ clusterKey }: ClusterDetailsClientProps) 
 
     fetchData();
   }, [clusterKey]);
-
-  const handleDateRangeChange = (newStartYear: number, newEndYear: number) => {
-    setStartYear(newStartYear);
-    setEndYear(newEndYear);
-  };
 
   if (loading) {
     return <div className="container mx-auto py-8 text-center">Loading...</div>;
@@ -127,15 +117,6 @@ export function ClusterDetailsClient({ clusterKey }: ClusterDetailsClientProps) 
     );
   }
 
-  const formattedClusters = imageClusters.map((cluster) => {
-    const firstImageMeta = cluster.similarImages[0];
-    return {
-      id: cluster.id,
-      imagePaths: cluster.similarImages.map(img => img.id),
-      firstImageMeta: firstImageMeta ? { pub_date: firstImageMeta.date } : undefined,
-    };
-  });
-
   return (
     <div className="container mx-auto py-8">
             <Link href="/">
@@ -144,12 +125,8 @@ export function ClusterDetailsClient({ clusterKey }: ClusterDetailsClientProps) 
         </Button>
       </Link>
       <Timeline
-        onDateRangeChange={handleDateRangeChange}
-        startYear={startYear}
-        endYear={endYear}
         activeStartYear={startYear}
         activeEndYear={endYear}
-        clusters={formattedClusters}
       />
 
       <ImageClusters startYear={startYear} endYear={endYear} imageClusters={imageClusters} currentCluster={currentCluster} />
