@@ -1,8 +1,8 @@
 services:
   backend:
     build:
-      context: ./src/backend
-      dockerfile: Dockerfile.backend
+      context: .
+      dockerfile: ./src/backend/Dockerfile.backend
     container_name: viral-images-backend
     profiles:
       - backend
@@ -13,9 +13,6 @@ services:
       - PYTHONUNBUFFERED=1
       - DATA_PATH=/data/processed_dataset.parquet
     volumes:
-      # Only mount code for development (hot reload)
-      # Comment out for production to use built image
-      - ./src/backend:/app:ro  # Read-only to prevent overwriting built files
       # Preserve the /data directory from the image
       - backend_data:/data
     networks:
@@ -51,8 +48,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: viral-images-frontend
     profiles:
-      - frontend
-      - full  # Can run with 'full' profile or 'frontend' profile
+      - frontend  # Dev-only frontend service
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:

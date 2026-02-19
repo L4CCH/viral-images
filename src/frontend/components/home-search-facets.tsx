@@ -4,13 +4,20 @@
 import { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getFacets, type Facets } from '@/lib/api';
+import { getFacets } from '@/lib/api';
+import { SearchFacets } from '@/lib/types';
 import { useFilters } from '@/contexts/filter-context';
+import { cn } from '@/lib/utils';
 
-const FacetSidebar = () => {
+interface SearchFacetsSidebarProps {
+  className?: string;
+}
+
+const SearchFacetsSidebar = ({ className }: SearchFacetsSidebarProps) => {
+  const asideClass = cn('w-64 shrink-0 p-4', className);
   // Get filter state and handlers from context
-  const { startYear, endYear, selectedNewspapers, selectedPublishers, handleNewspaperFilterChange, handlePublisherFilterChange } = useFilters();
-  const [facets, setFacets] = useState<Facets | null>(null);
+  const { startDate, endDate, selectedNewspapers, selectedPublishers, handleNewspaperFilterChange, handlePublisherFilterChange } = useFilters();
+  const [facets, setFacets] = useState<SearchFacets | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,11 +29,11 @@ const FacetSidebar = () => {
         setError(null);
         
         const params: { start_date?: string; end_date?: string } = {};
-        if (startYear) {
-          params.start_date = `${startYear}-01-01`;
+        if (startDate) {
+          params.start_date = startDate;
         }
-        if (endYear) {
-          params.end_date = `${endYear}-12-31`;
+        if (endDate) {
+          params.end_date = endDate;
         }
         
         const fetchedFacets = await getFacets(params);
@@ -40,11 +47,11 @@ const FacetSidebar = () => {
     };
 
     fetchFacets();
-  }, [startYear, endYear]);
+  }, [startDate, endDate]);
 
   if (loading) {
     return (
-      <aside className="w-64 p-4 border-r">
+      <aside className={asideClass}>
         <div className="mt-4 border p-4">
           <p className="text-sm text-muted-foreground">Loading facets...</p>
         </div>
@@ -54,7 +61,7 @@ const FacetSidebar = () => {
 
   if (error) {
     return (
-      <aside className="w-64 p-4 border-r">
+      <aside className={asideClass}>
         <div className="mt-4 border p-4">
           <p className="text-sm text-destructive">Error: {error}</p>
         </div>
@@ -63,10 +70,10 @@ const FacetSidebar = () => {
   }
 
   return (
-    <aside className="w-64 p-4 border-r">
+    <aside className={asideClass}>
       {/* <h2 className="text-lg font-semibold mb-4">Filter by</h2> */}
       <div className="mt-4 border p-4">
-        <h3 className="font-semibold mb-4">Newspaper Name</h3>
+        <h3 className="font-medium text-lg mb-4">Newspaper</h3>
         <ScrollArea className="h-80">
           {Object.entries(facets?.newspapers || {}).map(([name, count]) => (
             <div key={name} className="flex items-center space-x-2 mb-2">
@@ -77,7 +84,7 @@ const FacetSidebar = () => {
               />
               <label
                 htmlFor={`newspaper-${name}`}
-                className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {name} ({count})
               </label>
@@ -86,7 +93,7 @@ const FacetSidebar = () => {
         </ScrollArea>
       </div>
       <div className="mt-4 border p-4">
-        <h3 className="font-semibold mb-4">Publisher</h3>
+        <h3 className="font-medium text-lg mb-4">Publisher</h3>
         <ScrollArea className="h-80">
           {Object.entries(facets?.publishers || {}).map(([name, count]) => (
             <div key={name} className="flex items-center space-x-2 mb-2">
@@ -97,7 +104,7 @@ const FacetSidebar = () => {
               />
               <label
                 htmlFor={`publisher-${name}`}
-                className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {name} ({count})
               </label>
@@ -109,4 +116,4 @@ const FacetSidebar = () => {
   );
 };
 
-export default FacetSidebar;
+export default SearchFacetsSidebar;

@@ -4,11 +4,13 @@ import { createContext, useContext, useState, useCallback, useMemo, useEffect, R
 import { getDatasetMetadata } from '@/lib/api';
 
 interface FilterContextType {
-  startYear: number;
-  endYear: number;
+  // Canonical date filters in YYYY-MM-DD format (passed directly to backend)
+  startDate: string;
+  endDate: string;
   selectedNewspapers: string[];
   selectedPublishers: string[];
-  handleDateRangeChange: (start: number, end: number) => void;
+  // Update the date range using YYYY-MM-DD strings
+  handleDateRangeChange: (start: string, end: string) => void;
   handleNewspaperFilterChange: (newspaper: string) => void;
   handlePublisherFilterChange: (publisher: string) => void;
 }
@@ -16,8 +18,9 @@ interface FilterContextType {
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [startYear, setStartYear] = useState(1700);
-  const [endYear, setEndYear] = useState(2000);
+  // Store full dates in YYYY-MM-DD format to align with backend expectations
+  const [startDate, setStartDate] = useState('1900-01-01');
+  const [endDate, setEndDate] = useState('1950-12-31');
   const [selectedNewspapers, setSelectedNewspapers] = useState<string[]>([]);
   const [selectedPublishers, setSelectedPublishers] = useState<string[]>([]);
 
@@ -26,13 +29,10 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     const fetchMetadata = async () => {
       try {
         const metadata = await getDatasetMetadata();
-        // Extract years from YYYY-MM-DD format dates
-        const startYearFromMetadata = parseInt(metadata.dates.start_date.split('-')[0]);
-        const endYearFromMetadata = parseInt(metadata.dates.end_date.split('-')[0]);
-        setStartYear(startYearFromMetadata);
-        setEndYear(endYearFromMetadata);
+        // Use canonical YYYY-MM-DD dates directly from the dataset metadata
+        setStartDate(metadata.dates.start_date);
+        setEndDate(metadata.dates.end_date);
       } catch (error) {
-        // Silently fallback to default values (1700 and 2000) if fetch fails
         console.error('Failed to fetch dataset metadata, using default date range:', error);
       }
     };
@@ -40,9 +40,9 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     fetchMetadata();
   }, []);
 
-  const handleDateRangeChange = useCallback((start: number, end: number) => {
-    setStartYear(start);
-    setEndYear(end);
+  const handleDateRangeChange = useCallback((start: string, end: string) => {
+    setStartDate(start);
+    setEndDate(end);
   }, []);
 
   const handleNewspaperFilterChange = useCallback((newspaper: string) => {
@@ -64,15 +64,15 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   // Memoize context value to prevent unnecessary re-renders
   const value = useMemo(
     () => ({
-      startYear,
-      endYear,
+      startDate,
+      endDate,
       selectedNewspapers,
       selectedPublishers,
       handleDateRangeChange,
       handleNewspaperFilterChange,
       handlePublisherFilterChange,
     }),
-    [startYear, endYear, selectedNewspapers, selectedPublishers, handleDateRangeChange, handleNewspaperFilterChange, handlePublisherFilterChange]
+    [startDate, endDate, selectedNewspapers, selectedPublishers, handleDateRangeChange, handleNewspaperFilterChange, handlePublisherFilterChange]
   );
 
   return (

@@ -1,19 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Timeline } from "@/components/timeline";
-import { ClusterList } from "@/components/cluster-list";
-import FacetSidebar from '@/components/facet-sidebar';
-import { searchClusters, type BackendCluster } from '@/lib/api';
+import { Timeline } from "@/components/home-search-timeline";
+import { SearchResults } from "@/components/home-search-results";
+import FacetSidebar from '@/components/home-search-facets';
 import { useFilters } from '@/contexts/filter-context';
+import { searchClusters } from '@/lib/api';
+import { Cluster } from "@/lib/types";
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Filter } from 'lucide-react';
 
-export interface ClusterData {
+
+interface ClusterListItem {
   id: string;
   imagePaths: string[];
-  dates: {
-    start_date: string; // YYYY-MM-DD format
-    end_date: string; // YYYY-MM-DD format
-  };
+  dates: Cluster["dates"];
   newspapers: string[];
   publishers: string[];
   thumbnail: string;
@@ -21,9 +23,9 @@ export interface ClusterData {
 
 export default function HomeClient() {
   // Get filter state from context
-  const { startYear, endYear, selectedNewspapers, selectedPublishers } = useFilters();
+  const { startDate, endDate, selectedNewspapers, selectedPublishers } = useFilters();
   
-  const [allClusters, setAllClusters] = useState<ClusterData[]>([]);
+  const [allClusters, setAllClusters] = useState<ClusterListItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const backendLimit = 50; // Backend limit per request
@@ -31,10 +33,11 @@ export default function HomeClient() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Minimal transformation - backend already provides all needed data
-  const formatClusters = (backendClusters: BackendCluster[]): ClusterData[] => {
-    return backendClusters.map((cluster: BackendCluster) => ({
+  const formatClusters = (backendClusters: Cluster[]): ClusterListItem[] => {
+    return backendClusters.map((cluster) => ({
       id: cluster.id,
       imagePaths: cluster.images,
       dates: cluster.dates,
@@ -67,10 +70,12 @@ export default function HomeClient() {
           limit: backendLimit,
         };
 
-        // Add date filters
-        if (startYear || endYear) {
-          searchParams.start_date = `${startYear}-01-01`;
-          searchParams.end_date = `${endYear}-12-31`;
+        // Add date filters (already in canonical YYYY-MM-DD format)
+        if (startDate) {
+          searchParams.start_date = startDate;
+        }
+        if (endDate) {
+          searchParams.end_date = endDate;
         }
 
         // Add newspaper filter
@@ -107,7 +112,7 @@ export default function HomeClient() {
 
     loadClusters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startYear, endYear, selectedNewspapers, selectedPublishers]);
+  }, [startDate, endDate, selectedNewspapers, selectedPublishers]);
 
   // Load more clusters for pagination
   const loadMoreClusters = useCallback(async () => {
@@ -123,10 +128,12 @@ export default function HomeClient() {
           limit: backendLimit,
         };
 
-        // Add date filters
-        if (startYear || endYear) {
-          searchParams.start_date = `${startYear}-01-01`;
-          searchParams.end_date = `${endYear}-12-31`;
+        // Add date filters (already in canonical YYYY-MM-DD format)
+        if (startDate) {
+          searchParams.start_date = startDate;
+        }
+        if (endDate) {
+          searchParams.end_date = endDate;
         }
 
         // Add newspaper filter
@@ -159,7 +166,7 @@ export default function HomeClient() {
         setLoadingMore(false);
       }
     }
-  }, [loadingMore, hasMore, loading, currentPage, startYear, endYear, selectedNewspapers, selectedPublishers, backendLimit]);
+  }, [loadingMore, hasMore, loading, currentPage, startDate, endDate, selectedNewspapers, selectedPublishers, backendLimit]);
 
 
   if (loading) {
@@ -172,11 +179,25 @@ export default function HomeClient() {
 
   return (
     <div className="flex">
-      <FacetSidebar />
+      <div className="hidden shrink-0 md:block">
+        <FacetSidebar />
+      </div>
       <main className="flex-1 px-4 py-4">
-        {/* <h1 className="text-3xl font-bold mb-8 text-center">Viral Images</h1> */}
+        <div className="md:hidden mb-4">
+          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0 overflow-auto">
+              <FacetSidebar className="w-full" />
+            </SheetContent>
+          </Sheet>
+        </div>
         <Timeline />
-        <ClusterList
+        <SearchResults
           clusters={allClusters}
           loadMore={loadMoreClusters}
           hasMore={hasMore}

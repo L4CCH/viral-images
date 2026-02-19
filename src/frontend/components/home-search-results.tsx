@@ -5,9 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
-
-
-interface ClusterData {
+// Shape of clusters coming from HomeClient (lightweight view of backend Cluster)
+interface ClusterListItem {
   id: string;
   imagePaths: string[];
   dates: {
@@ -19,7 +18,8 @@ interface ClusterData {
   thumbnail: string;
 }
 
-interface Cluster {
+// Local type for processed clusters used for rendering cards
+interface RenderedClusterCard {
   id: string;
   title: string;
   imageCount: number;
@@ -29,16 +29,18 @@ interface Cluster {
   endYear: number;
 }
 
-export function ClusterList({
+interface ClusterListProps {
+  clusters: ClusterListItem[];
+  loadMore: () => void;
+  hasMore: boolean;
+}
+
+export function SearchResults({
   clusters,
   loadMore,
   hasMore,
-}: {
-  clusters: ClusterData[];
-  loadMore: () => void;
-  hasMore: boolean;
-}) {
-  const [processedClusters, setProcessedClusters] = useState<Cluster[]>([]);
+}: ClusterListProps) {
+  const [processedClusters, setProcessedClusters] = useState<RenderedClusterCard[]>([]);
   const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
@@ -46,13 +48,13 @@ export function ClusterList({
   const loadMoreRef = useRef(loadMore);
 
   useEffect(() => {
-    if (!clusters) {
+    if (!clusters || clusters.length === 0) {
       setProcessedClusters([]);
       return;
     }
 
-    // Use backend data directly - no unnecessary computation
-    const processed = clusters.map((cluster: ClusterData) => {
+    // Minimal shaping for display: derive title, counts, and years
+    const processed: RenderedClusterCard[] = clusters.map((cluster) => {
       const startYear = parseInt(cluster.dates.start_date.split('-')[0]);
       const endYear = parseInt(cluster.dates.end_date.split('-')[0]);
       return {
@@ -177,7 +179,11 @@ export function ClusterList({
     <div className="relative">
       <div ref={containerRef} className="relative" style={{ height: containerHeight }}>
         {processedClusters.map((cluster) => (
-          <Link href={`/cluster/${cluster.id}`} key={cluster.id} className="absolute block masonry-item">
+          <Link
+            href={`/cluster?id=${encodeURIComponent(cluster.id)}`}
+            key={cluster.id}
+            className="absolute block masonry-item"
+          >
           <Card className="group relative cursor-pointer overflow-hidden p-0 w-full h-full">
             {cluster.featureImage && (
               <div className="relative w-full h-auto">

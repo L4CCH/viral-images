@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
 
-
+from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from routers import default, clusters, images, search
 from core.config import settings
@@ -31,6 +32,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+api_router = APIRouter(prefix="/api")
+api_router.include_router(default.router)
+api_router.include_router(clusters.router)
+api_router.include_router(images.router)
+api_router.include_router(search.router)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -44,7 +51,8 @@ app.title = settings.api_title
 app.description = settings.api_description
 app.version = settings.api_version
 
-app.include_router(default.router)
-app.include_router(clusters.router)
-app.include_router(images.router)
-app.include_router(search.router)
+app.include_router(api_router)
+
+static_dir = "/app/static"
+if os.path.isdir(static_dir):
+    app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")

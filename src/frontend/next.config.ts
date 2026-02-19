@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
 
-const isProd = process.env.NODE_ENV === 'production'
-
 const nextConfig: NextConfig = {
-  distDir: 'dist',
   trailingSlash: true,
+  output: "export",
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -18,8 +16,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  assetPrefix: isProd ? '/viral-images/' : '',
-  basePath: isProd ? '/viral-images' : '',
 };
 
 export default nextConfig;

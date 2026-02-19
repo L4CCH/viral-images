@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Newsreader } from "next/font/google";
+import { Goudy_Bookletter_1911 } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
 
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
+const goudyBookletter = Goudy_Bookletter_1911({
+  variable: "--font-goudy-bookletter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"], // Multiple weights available
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
   title: "Viral Images",
-  description: "Explore viral images from historical newspapers.",
+  description: "Browse image reprints from historical newspapers.",
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${newsreader.variable} antialiased pt-16`}
+        className={`${goudyBookletter.variable} antialiased pt-16`}
       >
         <Header />
         {children}

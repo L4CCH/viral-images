@@ -6,7 +6,7 @@ from models.schemas import Cluster
 router = APIRouter(tags=["clusters"])
 
 
-@router.get("/clusters/{cluster_id}", response_model=Cluster)
+@router.get("/cluster/{cluster_id}", response_model=Cluster)
 async def get_cluster_metadata(
     cluster_id: str,
     data_service: DataService = Depends(get_data_service),
