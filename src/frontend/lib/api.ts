@@ -18,10 +18,15 @@ export async function searchClusters(params: SearchParams = {}): Promise<Cluster
   if (params.query) searchParams.append('query', params.query);
   if (params.start_date) searchParams.append('start_date', params.start_date);
   if (params.end_date) searchParams.append('end_date', params.end_date);
-  if (params.newspaper_name) searchParams.append('newspaper_name', params.newspaper_name);
-  if (params.publisher) searchParams.append('publisher', params.publisher);
+  if (params.newspaper_name && params.newspaper_name.length > 0) {
+    params.newspaper_name.forEach(name => searchParams.append('newspaper_name', name));
+  }
+  if (params.publisher && params.publisher.length > 0) {
+    params.publisher.forEach(pub => searchParams.append('publisher', pub));
+  }
   if (params.page) searchParams.append('page', params.page.toString());
   if (params.limit) searchParams.append('limit', params.limit.toString());
+  if (params.offset != null) searchParams.append('offset', params.offset.toString());
   if (params.order_by) searchParams.append('order_by', params.order_by);
   if (params.order_direction) searchParams.append('order_direction', params.order_direction);
 

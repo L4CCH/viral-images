@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 // Shape of clusters coming from HomeClient (lightweight view of backend Cluster)
 interface ClusterListItem {
@@ -33,19 +34,18 @@ interface ClusterListProps {
   clusters: ClusterListItem[];
   loadMore: () => void;
   hasMore: boolean;
+  loadingMore?: boolean;
 }
 
 export function SearchResults({
   clusters,
   loadMore,
   hasMore,
+  loadingMore = false,
 }: ClusterListProps) {
   const [processedClusters, setProcessedClusters] = useState<RenderedClusterCard[]>([]);
-  const observerTarget = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
-  const isLoadingRef = useRef(false);
-  const loadMoreRef = useRef(loadMore);
 
   useEffect(() => {
     if (!clusters || clusters.length === 0) {
@@ -71,54 +71,6 @@ export function SearchResults({
     });
     setProcessedClusters(processed);
   }, [clusters]);
-
-  // Keep loadMore ref up to date
-  useEffect(() => {
-    loadMoreRef.current = loadMore;
-  }, [loadMore]);
-
-  useEffect(() => {
-    // Don't set up observer if there's no more to load
-    if (!hasMore) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        // Only trigger if:
-        // 1. The target is intersecting
-        // 2. We have more to load
-        // 3. We're not already loading
-        if (entry.isIntersecting && hasMore && !isLoadingRef.current) {
-          isLoadingRef.current = true;
-          // Use the ref to call the latest loadMore function
-          loadMoreRef.current();
-          // Reset loading flag after a short delay to prevent rapid-fire calls
-          setTimeout(() => {
-            isLoadingRef.current = false;
-          }, 1000);
-        }
-      },
-      {
-        rootMargin: '100px', // Reduced from 200px to be less aggressive
-        threshold: 0.1, // Require at least 10% visibility
-      }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasMore]);
-
-  
 
   useLayoutEffect(() => {
     if (!containerRef.current) return;
@@ -176,8 +128,8 @@ export function SearchResults({
   }, [processedClusters]);
 
   return (
-    <div className="relative">
-      <div ref={containerRef} className="relative" style={{ height: containerHeight }}>
+    <div className="relative w-full">
+      <div ref={containerRef} className="relative w-full" style={{ height: containerHeight }}>
         {processedClusters.map((cluster) => (
           <Link
             href={`/cluster?id=${encodeURIComponent(cluster.id)}`}
@@ -203,10 +155,18 @@ export function SearchResults({
           </Card>
         </Link>
       ))}
+      </div>
       {hasMore && (
-        <div ref={observerTarget} className="h-20 w-full" aria-hidden="true"></div>
+        <div className="flex justify-center py-6 relative z-10 w-full">
+          <Button
+            onClick={() => loadMore()}
+            disabled={loadingMore}
+            variant="outline"
+          >
+            {loadingMore ? "Loading…" : "Show more results"}
+          </Button>
+        </div>
       )}
-    </div>
     </div>
   );
 }

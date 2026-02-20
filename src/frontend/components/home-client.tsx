@@ -26,9 +26,9 @@ export default function HomeClient() {
   const { startDate, endDate, selectedNewspapers, selectedPublishers } = useFilters();
   
   const [allClusters, setAllClusters] = useState<ClusterListItem[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const backendLimit = 50; // Backend limit per request
+  const INITIAL_LIMIT = 50;
+  const LOAD_MORE_LIMIT = 20;
   
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -48,10 +48,11 @@ export default function HomeClient() {
   };
 
 
-  // Track if this is the initial mount to avoid double-fetching
+  const REFETCH_DEBOUNCE_MS = 300;
   const isInitialMount = useRef(true);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch clusters on mount and when filters change
+  // Fetch clusters on mount (immediate) and when filters change (debounced)
   useEffect(() => {
     const loadClusters = async () => {
       try {
@@ -61,100 +62,72 @@ export default function HomeClient() {
           setLoading(true);
           setError(null);
         }
-        
-        setCurrentPage(1);
 
-        // Build search params with current filters
         const searchParams: any = {
           page: 1,
-          limit: backendLimit,
+          limit: INITIAL_LIMIT,
         };
+        if (startDate) searchParams.start_date = startDate;
+        if (endDate) searchParams.end_date = endDate;
+        if (selectedNewspapers.length > 0) searchParams.newspaper_name = selectedNewspapers;
+        if (selectedPublishers.length > 0) searchParams.publisher = selectedPublishers;
 
-        // Add date filters (already in canonical YYYY-MM-DD format)
-        if (startDate) {
-          searchParams.start_date = startDate;
-        }
-        if (endDate) {
-          searchParams.end_date = endDate;
-        }
-
-        // Add newspaper filter
-        if (selectedNewspapers.length > 0) {
-          searchParams.newspaper_name = selectedNewspapers[0];
-        }
-
-        // Add publisher filter
-        if (selectedPublishers.length > 0) {
-          searchParams.publisher = selectedPublishers[0];
-        }
-
-        console.log(`Fetching clusters page 1 with filters:`, searchParams);
         const backendClusters = await searchClusters(searchParams);
-        console.log(`Fetched ${backendClusters.length} clusters`);
-
         const formattedClusters = formatClusters(backendClusters);
         setAllClusters(formattedClusters);
-
-        // Check if there are more clusters to load
-        setHasMore(backendClusters.length === backendLimit);
+        setHasMore(backendClusters.length === INITIAL_LIMIT);
       } catch (err: unknown) {
         console.error('Error fetching data:', err);
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
       } finally {
         setLoading(false);
         setLoadingMore(false);
       }
     };
 
-    loadClusters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (isInitialMount.current) {
+      loadClusters();
+      return () => {
+        if (debounceTimeoutRef.current) {
+          clearTimeout(debounceTimeoutRef.current);
+          debounceTimeoutRef.current = null;
+        }
+      };
+    }
+
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+    }
+    debounceTimeoutRef.current = setTimeout(loadClusters, REFETCH_DEBOUNCE_MS);
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
+    };
   }, [startDate, endDate, selectedNewspapers, selectedPublishers]);
 
-  // Load more clusters for pagination
+  // Load more clusters for pagination (20 per request, using offset)
   const loadMoreClusters = useCallback(async () => {
     if (!loadingMore && hasMore && !loading) {
       try {
         setLoadingMore(true);
-        const nextPage = currentPage + 1;
-        setCurrentPage(nextPage);
+        const nextOffset = allClusters.length;
 
-        // Build search params with current filters
         const searchParams: any = {
-          page: nextPage,
-          limit: backendLimit,
+          offset: nextOffset,
+          limit: LOAD_MORE_LIMIT,
         };
+        if (startDate) searchParams.start_date = startDate;
+        if (endDate) searchParams.end_date = endDate;
+        if (selectedNewspapers.length > 0) searchParams.newspaper_name = selectedNewspapers;
+        if (selectedPublishers.length > 0) searchParams.publisher = selectedPublishers;
 
-        // Add date filters (already in canonical YYYY-MM-DD format)
-        if (startDate) {
-          searchParams.start_date = startDate;
-        }
-        if (endDate) {
-          searchParams.end_date = endDate;
-        }
-
-        // Add newspaper filter
-        if (selectedNewspapers.length > 0) {
-          searchParams.newspaper_name = selectedNewspapers[0];
-        }
-
-        // Add publisher filter
-        if (selectedPublishers.length > 0) {
-          searchParams.publisher = selectedPublishers[0];
-        }
-
-        console.log(`Fetching clusters page ${nextPage} with filters:`, searchParams);
         const backendClusters = await searchClusters(searchParams);
-        console.log(`Fetched ${backendClusters.length} clusters`);
-
         const formattedClusters = formatClusters(backendClusters);
         setAllClusters(prev => [...prev, ...formattedClusters]);
-
-        // Check if there are more clusters to load
-        setHasMore(backendClusters.length === backendLimit);
+        setHasMore(backendClusters.length === LOAD_MORE_LIMIT);
       } catch (err: unknown) {
         console.error('Error fetching more clusters:', err);
         if (err instanceof Error) {
@@ -166,16 +139,8 @@ export default function HomeClient() {
         setLoadingMore(false);
       }
     }
-  }, [loadingMore, hasMore, loading, currentPage, startDate, endDate, selectedNewspapers, selectedPublishers, backendLimit]);
+  }, [loadingMore, hasMore, loading, allClusters.length, startDate, endDate, selectedNewspapers, selectedPublishers]);
 
-
-  if (loading) {
-    return <div className="px-4 py-4 text-center">Loading application data...</div>;
-  }
-
-  if (error) {
-    return <div className="px-4 py-4 text-center text-red-500">Error: {error}</div>;
-  }
 
   return (
     <div className="flex">
@@ -197,13 +162,24 @@ export default function HomeClient() {
           </Sheet>
         </div>
         <Timeline />
-        <SearchResults
-          clusters={allClusters}
-          loadMore={loadMoreClusters}
-          hasMore={hasMore}
-        />
-        {loadingMore && (
-          <div className="px-4 py-4 text-center text-gray-500">Loading more clusters...</div>
+        {error && (
+          <div className="px-4 py-4 text-center text-destructive">Error: {error}</div>
+        )}
+        {!error && loading && allClusters.length === 0 && (
+          <div className="px-4 py-4 text-center text-muted-foreground">Loading application data...</div>
+        )}
+        {!error && (allClusters.length > 0 || !loading) && (
+          <>
+            {loading && allClusters.length > 0 && (
+              <div className="px-2 py-1 text-center text-sm text-muted-foreground">Updating…</div>
+            )}
+            <SearchResults
+              clusters={allClusters}
+              loadMore={loadMoreClusters}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+            />
+          </>
         )}
       </main>
     </div>

@@ -26,10 +26,11 @@ async def get_search_results(
     query: Optional[str] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
-    newspaper_name: Optional[str] = None,
-    publisher: Optional[str] = None,
+    newspaper_name: Optional[List[str]] = Query(None),
+    publisher: Optional[List[str]] = Query(None),
     page: int = 1,
-    limit: int = Query(10, enum=[10, 50, 100]),  # Allow only 10, 50, or 100
+    limit: int = Query(10, enum=[10, 20, 50, 100]),  # Allow only 10, 20, 50, or 100
+    offset: Optional[int] = Query(None, ge=0),
     order_by: Optional[OrderBy] = None,
     order_direction: OrderDirection = OrderDirection.DESC,
     data_service: DataService = Depends(get_data_service),
@@ -38,10 +39,11 @@ async def get_search_results(
         query=query,
         start_date=start_date,
         end_date=end_date,
-        newspaper_name=newspaper_name,
-        publisher=publisher,
+        newspaper_names=newspaper_name or [],
+        publishers=publisher or [],
         page=page,
         limit=limit,
+        offset=offset,
         order_by=order_by.value if order_by else None,
         order_direction=order_direction.value,
     )

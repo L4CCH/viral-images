@@ -43,10 +43,11 @@ export interface SearchParams {
   query?: string;
   start_date?: string; // YYYY-MM-DD format
   end_date?: string; // YYYY-MM-DD format
-  newspaper_name?: string;
-  publisher?: string;
+  newspaper_name?: string[];
+  publisher?: string[];
   page?: number;
   limit?: number;
+  offset?: number;
   order_by?: 'newspaper_count' | 'publisher_count' | 'image_count';
   order_direction?: 'asc' | 'desc';
 }

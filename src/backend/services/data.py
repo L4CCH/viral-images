@@ -167,10 +167,11 @@ class DataService:
         query: Optional[str] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
-        newspaper_name: Optional[str] = None,
-        publisher: Optional[str] = None,
+        newspaper_names: Optional[List[str]] = None,
+        publishers: Optional[List[str]] = None,
         page: int = 1,
         limit: int = 10,
+        offset: Optional[int] = None,
         order_by: Optional[str] = None,
         order_direction: str = "desc",
     ) -> List[Dict[str, Any]]:
@@ -184,19 +185,23 @@ class DataService:
         if end_date:
             filtered_df = filtered_df[filtered_df["pub_date"] <= pd.to_datetime(end_date)]
 
-        if newspaper_name:
-            filtered_df = filtered_df[
-                filtered_df["name"].str.contains(newspaper_name, case=False, na=False)
-            ]
+        # Filter by newspaper names (OR logic: match any of the selected newspapers)
+        if newspaper_names:
+            mask = pd.Series(False, index=filtered_df.index)
+            for n in newspaper_names:
+                mask = mask | filtered_df["name"].str.contains(n, case=False, na=False, regex=False)
+            filtered_df = filtered_df[mask]
 
-        if publisher:
-            filtered_df = filtered_df[
-                filtered_df["publisher"].str.contains(publisher, case=False, na=False)
-            ]
+        # Filter by publishers (OR logic: match any of the selected publishers)
+        if publishers:
+            mask = pd.Series(False, index=filtered_df.index)
+            for p in publishers:
+                mask = mask | filtered_df["publisher"].str.contains(p, case=False, na=False, regex=False)
+            filtered_df = filtered_df[mask]
 
         if query:
             filtered_df = filtered_df[
-                filtered_df["ocr_text"].str.contains(query, case=False, na=False)
+                filtered_df["ocr_text"].str.contains(query, case=False, na=False, regex=False)
             ]
 
         clustered_results = (
@@ -226,7 +231,10 @@ class DataService:
         clustered_results = clustered_results.sort_values(by=sort_by, ascending=ascending)
 
         # Apply pagination after sorting
-        start_index = (page - 1) * limit
+        if offset is not None:
+            start_index = offset
+        else:
+            start_index = (page - 1) * limit
         end_index = start_index + limit
         paginated_clusters = clustered_results.iloc[start_index:end_index]
 
