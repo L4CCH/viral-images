@@ -55,8 +55,8 @@ venv
 /data/*/**
 
 # final-photos
-/scripts/final-photos/concepts/*
-/scripts/final-photos/overall_stats/*
-/scripts/final-photos/all_photos*
-/scripts/final-photos/metadata*
-/scripts/final-photos/clusters*
+/scripts/cluster-analysis/concepts/*
+/scripts/cluster-analysis/overall_stats/*
+/scripts/cluster-analysis/all_photos*
+/scripts/cluster-analysis/metadata*
+/scripts/cluster-analysis/clusters*
