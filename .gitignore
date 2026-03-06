@@ -54,6 +54,9 @@ venv
 # data
 /data/*/**
 
-# 1910 subset
-scripts/sample-photos/1910_*
-scripts/sample-photos/mapping_matches.txt
+# final-photos
+/scripts/final-photos/concepts/*
+/scripts/final-photos/overall_stats/*
+/scripts/final-photos/all_photos*
+/scripts/final-photos/metadata*
+/scripts/final-photos/clusters*
