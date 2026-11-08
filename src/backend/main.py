@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import logging
 import os
 
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -38,14 +38,25 @@ api_router.include_router(clusters.router)
 api_router.include_router(images.router)
 api_router.include_router(search.router)
 
-# Add CORS middleware
+# CORS: only needed for browsers calling the API from another origin (the
+# Next.js dev server). The API is read-only and uses no cookies.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=settings.cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_content_security_policy(request: Request, call_next):
+    response = await call_next(request)
+    if settings.content_security_policy:
+        response.headers.setdefault(
+            "Content-Security-Policy", settings.content_security_policy
+        )
+    return response
 
 app.title = settings.api_title
 app.description = settings.api_description

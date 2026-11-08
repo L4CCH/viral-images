@@ -1,5 +1,6 @@
 import logging
 import re
+import numpy as np
 import pandas as pd
 from datetime import date
 from typing import Optional, List, Dict, Any
@@ -44,9 +45,12 @@ class DataService:
             df = pd.read_parquet(data_path)
 
             logging.info("Preprocessing OCR data for search...")
-            # Join the list of words in 'ocr' into a single string for faster search
+            # Join the words in 'ocr' into a single string for faster search.
+            # Parquet list columns load as numpy arrays, not Python lists.
             df["ocr_text"] = df["ocr"].apply(
-                lambda x: " ".join(x) if isinstance(x, list) else ""
+                lambda x: " ".join(map(str, x))
+                if isinstance(x, (list, tuple, np.ndarray))
+                else ""
             )
 
             # Convert 'pub_date' to datetime objects for efficient filtering
@@ -185,18 +189,13 @@ class DataService:
         if end_date:
             filtered_df = filtered_df[filtered_df["pub_date"] <= pd.to_datetime(end_date)]
 
-        # Filter by newspaper names (OR logic: match any of the selected newspapers)
-        if newspaper_names:
-            mask = pd.Series(False, index=filtered_df.index)
-            for n in newspaper_names:
-                mask = mask | filtered_df["name"].str.contains(n, case=False, na=False, regex=False)
-            filtered_df = filtered_df[mask]
-
-        # Filter by publishers (OR logic: match any of the selected publishers)
-        if publishers:
-            mask = pd.Series(False, index=filtered_df.index)
-            for p in publishers:
-                mask = mask | filtered_df["publisher"].str.contains(p, case=False, na=False, regex=False)
+        # Newspaper and publisher filters are additive (union): keep rows that
+        # match any selected newspaper OR any selected publisher. Values come
+        # from the facets endpoint, so match names exactly.
+        if newspaper_names or publishers:
+            mask = filtered_df["name"].isin(newspaper_names or []) | filtered_df[
+                "publisher"
+            ].isin(publishers or [])
             filtered_df = filtered_df[mask]
 
         if query:

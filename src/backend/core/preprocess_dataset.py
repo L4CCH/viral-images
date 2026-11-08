@@ -6,6 +6,7 @@ formatting filepaths, filtering datasets, and saving the processed data
 as a Parquet file for efficient loading.
 """
 import logging
+import re
 from pathlib import Path
 from typing import Dict, List, Set, Optional
 from datasets import load_dataset, Dataset
@@ -25,6 +26,40 @@ METADATA_DATASET = "biglam/newspaper-navigator"
 METADATA_CONFIG = "photos"
 OUTPUT_FILE = "processed_dataset.parquet"
 CLUSTER_ID_TO_REMOVE = "0"
+IIIF_URL_COLUMN = "prediction_section_iiif_url"
+
+# Legacy Chronicling America IIIF URLs, e.g.
+#   https://chroniclingamerica.loc.gov/iiif/2/in_jillette_ver01%2Fdata%2Fsn82015313
+#   %2F00383349655%2F1934092401%2F0448.jp2/{region}/{size}/0/default.jpg
+# permanently redirect (308) to the loc.gov Image Services API on tile.loc.gov.
+_LEGACY_IIIF_URL = re.compile(
+    r"^https://chroniclingamerica\.loc\.gov/iiif/2/"
+    r"(?P<batch>(?P<inst>[a-z]+)_[a-z0-9_]+)%2Fdata%2F"
+    r"(?P<lccn>[^%]+)%2F(?P<reel>[^%]+)%2F(?P<edition>[^%]+)%2F(?P<seq>[^%/]+)\.jp2"
+    r"/(?P<params>.+)$"
+)
+
+
+def to_tile_iiif_url(url: str) -> str:
+    """
+    Rewrite a legacy chroniclingamerica.loc.gov IIIF URL to the equivalent
+    tile.loc.gov Image Services URL (the target of LoC's 308 redirect).
+
+    Requesting tile.loc.gov directly skips one redirect per image and avoids
+    depending on the retired Chronicling America site. LoC rate-limits image
+    requests (https://www.loc.gov/apis/json-and-yaml/working-within-limits/).
+    URLs that don't match the legacy pattern are returned unchanged.
+    """
+    if not isinstance(url, str):
+        return url
+    m = _LEGACY_IIIF_URL.match(url)
+    if not m:
+        return url
+    service = (
+        f"service:ndnp:{m['inst']}:batch_{m['batch']}:data:"
+        f"{m['lccn']}:{m['reel']}:{m['edition']}:{m['seq']}"
+    )
+    return f"https://tile.loc.gov/image-services/iiif/{service}/{m['params']}"
 
 
 def format_filepath_to_path(filepath: str) -> str:
@@ -275,7 +310,15 @@ def preprocess_dataset(
         # Step 6: Convert to DataFrame
         logger.info("Converting filtered dataset to DataFrame...")
         filtered_df = pd.DataFrame(filtered_dataset)
-        
+
+        # Step 6b: Point image URLs directly at tile.loc.gov
+        original_urls = filtered_df[IIIF_URL_COLUMN]
+        filtered_df[IIIF_URL_COLUMN] = original_urls.map(to_tile_iiif_url)
+        rewritten = int((filtered_df[IIIF_URL_COLUMN] != original_urls).sum())
+        logger.info(
+            f"Rewrote {rewritten:,} of {len(filtered_df):,} IIIF URLs to tile.loc.gov"
+        )
+
         # Step 7: Validate output
         validate_output(filtered_df, clusters)
         
