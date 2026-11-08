@@ -12,7 +12,10 @@ const API_BASE_URL =
 /**
  * Fetch all clusters with optional filters
  */
-export async function searchClusters(params: SearchParams = {}): Promise<Cluster[]> {
+export async function searchClusters(
+  params: SearchParams = {},
+  options: { signal?: AbortSignal } = {},
+): Promise<Cluster[]> {
   const searchParams = new URLSearchParams();
   
   if (params.query) searchParams.append('query', params.query);
@@ -32,9 +35,9 @@ export async function searchClusters(params: SearchParams = {}): Promise<Cluster
 
   const url = `${API_BASE_URL}/search?${searchParams.toString()}`;
   console.log(`Fetching from: ${url}`);
-  
+
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: options.signal });
     
     if (!response.ok) {
       const errorText = await response.text();

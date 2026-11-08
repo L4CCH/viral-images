@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useEffect, useMemo, useRef } from "react"
-import { Slider } from "@/components/ui/slider"
 import { Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getTimelineHistogram } from "@/lib/api"
@@ -24,6 +23,7 @@ interface TimelineProps {
   activeEndYear?: number;
 }
 
+type DragHandle = "start" | "end"
 
 export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
   // Get canonical date filters and handler from context
@@ -32,19 +32,17 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
   const [histogram, setHistogram] = useState<TimelineHistogram | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [sliderRange, setSliderRange] = useState<[number, number] | null>(null)
-  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Range shown while a handle is being dragged; null when not dragging, in
+  // which case the range comes from the filter context.
+  const [dragRange, setDragRange] = useState<[number, number] | null>(null)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
-  const isDraggingRef = useRef<'start' | 'end' | 'slider' | null>(null)
+  // Latest range during a drag, readable from document-level listeners
   const currentRangeRef = useRef<[number, number] | null>(null)
 
   // Fetch histogram from backend once on initial mount (static year counts)
   useEffect(() => {
     const fetchHistogram = async () => {
       try {
-        setLoading(true)
-        setError(null)
-
         const fetchedHistogram = await getTimelineHistogram();
         setHistogram(fetchedHistogram);
       } catch (err) {
@@ -71,22 +69,8 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
     [endDate, maxYear],
   )
 
-  const displayStartYear = sliderRange ? sliderRange[0] : startYear
-  const displayEndYear = sliderRange ? sliderRange[1] : endYear
-
-  // Keep local slider range in sync with context-driven years
-  useEffect(() => {
-    currentRangeRef.current = [startYear, endYear]
-    setSliderRange([startYear, endYear])
-  }, [startYear, endYear])
-
-  // Convert histogram year_counts to a map for easier lookup
-  const yearCountsMap: { [year: number]: number } = {};
-  if (histogram) {
-    histogram.year_counts.forEach(item => {
-      yearCountsMap[item.year] = item.count;
-    });
-  }
+  const displayStartYear = dragRange ? dragRange[0] : startYear
+  const displayEndYear = dragRange ? dragRange[1] : endYear
 
   const maxCount = histogram ? Math.max(...histogram.year_counts.map(item => item.count), 0) : 0
 
@@ -102,66 +86,10 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
 
   const yearMarkers = getYearMarkers()
 
-  // Update visual state immediately without triggering search
-  const updateVisualRange = (value: number[]) => {
-    const [newStartYear, newEndYear] = value
-    currentRangeRef.current = [newStartYear, newEndYear]
-    setSliderRange([newStartYear, newEndYear])
-  }
-
-  // Update search context (debounced, only called when drag ends)
-  const updateSearchContext = (value: number[]) => {
-    const [newStartYear, newEndYear] = value
-    const newStartDate = `${newStartYear}-01-01`
-    const newEndDate = `${newEndYear}-12-31`
-    handleDateRangeChange(newStartDate, newEndDate)
-  }
-
-  // Handle slider value changes - only update visual during drag, search on release
-  const handleRangeChange = (value: number[]) => {
-    // If currently dragging (bars or slider), only update visual
-    if (isDraggingRef.current) {
-      updateVisualRange(value)
-      return
-    }
-
-    // For non-drag interactions (e.g., click), update visual immediately
-    updateVisualRange(value)
-
-    // Debounce search update for non-drag interactions
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current)
-    }
-
-    debounceTimeoutRef.current = setTimeout(() => {
-      updateSearchContext(value)
-    }, 300)
-  }
-
-  // Handle slider drag start/end for regular slider component
-  const handleSliderMouseDown = () => {
-    // Clear any pending debounce when starting drag
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current)
-      debounceTimeoutRef.current = null
-    }
-    isDraggingRef.current = 'slider'
-  }
-
-  const handleSliderMouseUp = () => {
-    if (isDraggingRef.current === 'slider') {
-      // Update search context with final values from ref (always has latest values)
-      const finalRange = currentRangeRef.current || [displayStartYear, displayEndYear]
-      const [finalStart, finalEnd] = finalRange
-      updateSearchContext([finalStart, finalEnd])
-      isDraggingRef.current = null
-    }
-  }
-
-  // Convert mouse X position to year value
+  // Convert pointer X position to year value
   const getYearFromPosition = (clientX: number): number => {
     if (!timelineContainerRef.current) return displayStartYear
-    
+
     const rect = timelineContainerRef.current.getBoundingClientRect()
     const percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100))
     const yearCount = maxYear - minYear + 1
@@ -169,63 +97,46 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
     return Math.max(minYear, Math.min(maxYear, minYear + index))
   }
 
-  // Handle drag start on vertical bars
-  const handleBarMouseDown = (type: 'start' | 'end', e: React.MouseEvent<HTMLDivElement>) => {
+  // Drag a handle: update the highlight on every move, but only update the
+  // search filters (and so trigger the API request) when the drag ends.
+  const handleBarPointerDown = (type: DragHandle, e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
     e.preventDefault()
     e.stopPropagation()
-    
-    // Clear any pending debounce when starting a new drag
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current)
-      debounceTimeoutRef.current = null
-    }
-    
-    isDraggingRef.current = type
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!isDraggingRef.current) return
-      
-      const newYear = getYearFromPosition(moveEvent.clientX)
-      const clampedYear = Math.max(minYear, Math.min(maxYear, newYear))
-      
-      // Update visual state immediately during drag, but don't trigger search
-      if (isDraggingRef.current === 'start') {
-        const newStart = Math.min(clampedYear, displayEndYear)
-        updateVisualRange([newStart, displayEndYear])
-      } else {
-        const newEnd = Math.max(clampedYear, displayStartYear)
-        updateVisualRange([displayStartYear, newEnd])
+    currentRangeRef.current = [displayStartYear, displayEndYear]
+    setDragRange(currentRangeRef.current)
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const range = currentRangeRef.current
+      if (!range) return
+      const year = getYearFromPosition(moveEvent.clientX)
+      const next: [number, number] =
+        type === "start"
+          ? [Math.min(year, range[1]), range[1]]
+          : [range[0], Math.max(year, range[0])]
+      if (next[0] === range[0] && next[1] === range[1]) return
+      currentRangeRef.current = next
+      setDragRange(next)
+    }
+
+    const handlePointerUp = () => {
+      document.removeEventListener("pointermove", handlePointerMove)
+      document.removeEventListener("pointerup", handlePointerUp)
+      document.removeEventListener("pointercancel", handlePointerUp)
+
+      const finalRange = currentRangeRef.current
+      currentRangeRef.current = null
+      setDragRange(null)
+      if (finalRange && (finalRange[0] !== startYear || finalRange[1] !== endYear)) {
+        handleDateRangeChange(`${finalRange[0]}-01-01`, `${finalRange[1]}-12-31`)
       }
     }
 
-    const handleMouseUp = () => {
-      if (!isDraggingRef.current) return
-      
-      // Get final values from ref (always has latest values)
-      const finalRange = currentRangeRef.current || [displayStartYear, displayEndYear]
-      const [finalStart, finalEnd] = finalRange
-      
-      // Update search context only when drag ends
-      updateSearchContext([finalStart, finalEnd])
-      
-      isDraggingRef.current = null
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
+    document.addEventListener("pointermove", handlePointerMove)
+    document.addEventListener("pointerup", handlePointerUp)
+    document.addEventListener("pointercancel", handlePointerUp)
   }
-
-  // Slider/marker position: match Radix Slider math so thumbs and vertical markers align.
-  // Slider uses value normalization: (value - min) / (max - min).
-  const getSliderPercent = useMemo(() => {
-    const range = Math.max(1, maxYear - minYear)
-    return (year: number) => {
-      const percent = ((year - minYear) / range) * 100
-      return Math.max(0, Math.min(100, percent))
-    }
-  }, [minYear, maxYear])
 
   // Bar geometry: tile bars across the full width with no gaps and no bleed.
   // Each year gets an equal-width segment [k / N, (k + 1) / N] where N = number of years.
@@ -249,13 +160,17 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
     return (count / maxCount) * 40 // Max height of 40px
   }
 
-  
+  // Wide invisible hit area centered on a thin visible line. No transition on
+  // `left`, so the handle moves in lockstep with the selection highlight.
+  const handleClassName =
+    "group/handle absolute -top-1 -bottom-1 z-20 flex w-3 -translate-x-1/2 cursor-grab touch-none justify-center active:cursor-grabbing"
+  const handleLineClassName =
+    "h-full w-[3px] bg-primary transition-[width] group-hover/handle:w-[4px] group-active/handle:w-[4px]"
 
   return (
     <div className="mb-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          {/* <h2 className="text-xl font-semibold">Timeline</h2> */}
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <Badge variant="secondary" className="text-lg">
@@ -263,14 +178,6 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
             </Badge>
           </div>
         </div>
-        {/* <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={handleZoomOut}>
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={handleZoomIn}>
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-        </div> */}
       </div>
 
       <div className="relative border p-4 bg-background">
@@ -278,14 +185,13 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
         <div className="flex justify-between mb-2 text-xs text-muted-foreground" style={{ width: `${100 * zoomLevel}%` }}>
           {yearMarkers.map((year) => (
             <div key={year} className="text-center">
-              {/* <div className="h-2 border-l border-muted-foreground"></div> */}
               <span>{year}</span>
             </div>
           ))}
         </div>
 
-        {/* Timeline visualization with histogram and slider combined */}
-        <div ref={timelineContainerRef} className="relative" style={{ width: `${100 * zoomLevel}%` }}>
+        {/* Timeline visualization with histogram and drag handles */}
+        <div ref={timelineContainerRef} className="relative select-none" style={{ width: `${100 * zoomLevel}%` }}>
           {/* Histogram container */}
           <div className="relative h-16 bg-muted/20 rounded mb-2">
             {/* Selected range highlight */}
@@ -340,40 +246,23 @@ export function Timeline({ activeStartYear, activeEndYear }: TimelineProps) {
             )}
           </div>
 
-          {/* Range slider control - thumbs invisible but functional */}
-          <div 
-            className="relative"
-            onMouseDown={handleSliderMouseDown}
-            onMouseUp={handleSliderMouseUp}
-            onMouseLeave={handleSliderMouseUp}
+          {/* Draggable handles at the outer edges of the selected year bars */}
+          <div
+            className={handleClassName}
+            style={{ left: `${barGeometry.getLeft(displayStartYear)}%` }}
+            onPointerDown={(e) => handleBarPointerDown("start", e)}
+            aria-label="Drag to change start year"
           >
-            <Slider
-              value={[displayStartYear, displayEndYear]}
-              min={minYear}
-              max={maxYear}
-              step={1}
-              onValueChange={handleRangeChange}
-              className="w-full [&_[data-slot=slider-thumb]]:opacity-0 [&_[data-slot=slider-thumb]]:pointer-events-auto [&_[data-slot=slider-thumb]]:size-4"
-            />
+            <div className={handleLineClassName} />
           </div>
-
-          {/* Draggable vertical bars - aligned with outer edges of selected year bars */}
-          {/* These bars extend through both histogram and slider areas and handle dragging directly */}
           <div
-            className="absolute top-0 bottom-0 w-[3px] bg-primary cursor-grab active:cursor-grabbing hover:w-[4px] transition-all z-20"
-            style={{
-              left: `${barGeometry.getLeft(displayStartYear)}%`,
-            }}
-            onMouseDown={(e) => handleBarMouseDown('start', e)}
-          />
-          <div
-            className="absolute top-0 bottom-0 w-[3px] bg-primary cursor-grab active:cursor-grabbing hover:w-[4px] transition-all z-20"
-            style={{
-              left: `${barGeometry.getRight(displayEndYear)}%`,
-              transform: "translateX(-100%)",
-            }}
-            onMouseDown={(e) => handleBarMouseDown('end', e)}
-          />
+            className={handleClassName}
+            style={{ left: `${barGeometry.getRight(displayEndYear)}%` }}
+            onPointerDown={(e) => handleBarPointerDown("end", e)}
+            aria-label="Drag to change end year"
+          >
+            <div className={handleLineClassName} />
+          </div>
         </div>
       </div>
     </div>

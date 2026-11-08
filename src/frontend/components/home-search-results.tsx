@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
-import Image from "next/image";
+import { useState, useRef, useLayoutEffect, useMemo } from "react";
 import Link from "next/link";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 
 // Shape of clusters coming from HomeClient (lightweight view of backend Cluster)
 interface ClusterListItem {
@@ -35,95 +35,102 @@ interface ClusterListProps {
   loadMore: () => void;
   hasMore: boolean;
   loadingMore?: boolean;
+  loadMoreError?: string | null;
 }
+
+const GAP = 16; // Corresponds to Tailwind's gap-4
+
+const getColumnCount = () => {
+  if (window.innerWidth >= 1024) return 10; // lg
+  if (window.innerWidth >= 768) return 4; // md
+  return 3; // sm
+};
 
 export function SearchResults({
   clusters,
   loadMore,
   hasMore,
   loadingMore = false,
+  loadMoreError = null,
 }: ClusterListProps) {
-  const [processedClusters, setProcessedClusters] = useState<RenderedClusterCard[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
-  useEffect(() => {
-    if (!clusters || clusters.length === 0) {
-      setProcessedClusters([]);
-      return;
-    }
+  // Minimal shaping for display: derive title, counts, and years
+  const processedClusters = useMemo<RenderedClusterCard[]>(
+    () =>
+      (clusters ?? []).map((cluster) => {
+        const startYear = parseInt(cluster.dates.start_date.split("-")[0]);
+        const endYear = parseInt(cluster.dates.end_date.split("-")[0]);
+        return {
+          id: cluster.id,
+          title: `Cluster ${cluster.id}`,
+          imageCount: cluster.imagePaths.length,
+          featureImage: cluster.thumbnail || undefined,
+          alt:
+            cluster.newspapers.length > 0
+              ? `${cluster.newspapers[0]} - ${startYear}`
+              : "Cluster image",
+          startYear,
+          endYear,
+        };
+      }),
+    [clusters],
+  );
 
-    // Minimal shaping for display: derive title, counts, and years
-    const processed: RenderedClusterCard[] = clusters.map((cluster) => {
-      const startYear = parseInt(cluster.dates.start_date.split('-')[0]);
-      const endYear = parseInt(cluster.dates.end_date.split('-')[0]);
-      return {
-        id: cluster.id,
-        title: `Cluster ${cluster.id}`,
-        imageCount: cluster.imagePaths.length,
-        featureImage: cluster.thumbnail || '/file.svg',
-        alt: cluster.newspapers.length > 0 
-          ? `${cluster.newspapers[0]} - ${startYear}` 
-          : "Cluster image",
-        startYear,
-        endYear
-      };
-    });
-    setProcessedClusters(processed);
-  }, [clusters]);
-
+  // Shortest-column masonry. Tiles are absolutely positioned, so the layout is
+  // recomputed whenever the container or any tile changes size (an image
+  // loads, fails, or arrives lazily; the window is resized).
   useLayoutEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
     const calculateLayout = () => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const items = Array.from(container.children).filter(child => child.classList.contains('masonry-item')) as HTMLElement[];
-      if (items.length === 0) return;
-
-      const getColumnCount = () => {
-        if (window.innerWidth >= 1024) return 10; // lg
-        if (window.innerWidth >= 768) return 4;  // md
-        return 3; // sm
-      };
+      const items = Array.from(
+        container.querySelectorAll<HTMLElement>(":scope > .masonry-item"),
+      );
+      if (items.length === 0) {
+        setContainerHeight(0);
+        return;
+      }
 
       const columnCount = getColumnCount();
       const columnWidth = container.clientWidth / columnCount;
-      const columnHeights = Array(columnCount).fill(0);
-      const gap = 16; // Corresponds to Tailwind's gap-4
+      const columnHeights: number[] = Array(columnCount).fill(0);
 
       items.forEach((item) => {
         const minHeight = Math.min(...columnHeights);
-        const minHeightIndex = columnHeights.indexOf(minHeight);
+        const column = columnHeights.indexOf(minHeight);
 
-        item.style.position = 'absolute';
-        item.style.width = `${columnWidth - gap}px`; // Adjust for gap
-        item.style.left = `${minHeightIndex * columnWidth + gap / 2}px`; // Adjust for gap
-        item.style.top = `${minHeight + gap}px`; // Adjust for gap
+        item.style.width = `${columnWidth - GAP}px`;
+        item.style.left = `${column * columnWidth + GAP / 2}px`;
+        item.style.top = `${minHeight + GAP}px`;
 
-        columnHeights[minHeightIndex] += item.offsetHeight + gap;
+        columnHeights[column] += item.offsetHeight + GAP;
       });
 
       setContainerHeight(Math.max(...columnHeights));
     };
 
     calculateLayout();
-    window.addEventListener('resize', calculateLayout);
 
-    const imageLoadPromises = Array.from(containerRef.current.querySelectorAll('img')).map(img => {
-      if (img.complete) return Promise.resolve();
-      return new Promise(resolve => { img.onload = resolve; });
-    });
-
-    Promise.all(imageLoadPromises).then(() => {
-      requestAnimationFrame(() => {
+    // Batch bursts of resize notifications into one layout per frame.
+    let frame: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
         calculateLayout();
       });
     });
+    observer.observe(container);
+    container
+      .querySelectorAll(":scope > .masonry-item")
+      .forEach((item) => observer.observe(item));
 
     return () => {
-      window.removeEventListener('resize', calculateLayout);
+      observer.disconnect();
+      if (frame !== null) cancelAnimationFrame(frame);
     };
   }, [processedClusters]);
 
@@ -136,10 +143,9 @@ export function SearchResults({
             key={cluster.id}
             className="absolute block masonry-item"
           >
-          <Card className="group relative cursor-pointer overflow-hidden p-0 w-full h-full">
-            {cluster.featureImage && (
+            <Card className="group relative cursor-pointer overflow-hidden p-0 w-full h-full">
               <div className="relative w-full h-auto">
-                <Image
+                <ImageWithFallback
                   src={cluster.featureImage}
                   alt={cluster.alt || cluster.title}
                   width={500} // Placeholder width
@@ -151,19 +157,23 @@ export function SearchResults({
                   <CardDescription className="text-gray-200 text-xs"> ({cluster.startYear} - {cluster.endYear})</CardDescription>
                 </div>
               </div>
-            )}
-          </Card>
-        </Link>
-      ))}
+            </Card>
+          </Link>
+        ))}
       </div>
       {hasMore && (
-        <div className="flex justify-center py-6 relative z-10 w-full">
+        <div className="flex flex-col items-center gap-2 py-6 relative z-10 w-full">
+          {loadMoreError && (
+            <p role="alert" className="text-sm text-destructive">
+              Couldn&apos;t load more results: {loadMoreError}
+            </p>
+          )}
           <Button
             onClick={() => loadMore()}
             disabled={loadingMore}
             variant="outline"
           >
-            {loadingMore ? "Loading…" : "Show more results"}
+            {loadingMore ? "Loading…" : loadMoreError ? "Try again" : "Show more results"}
           </Button>
         </div>
       )}

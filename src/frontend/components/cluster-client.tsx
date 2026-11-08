@@ -80,7 +80,7 @@ export function ClusterClient() {
         </Button>
       </Link>
 
-      <ClusterImages cluster={cluster} images={images} />
+      <ClusterImages key={cluster.id} cluster={cluster} images={images} />
     </div>
   );
 }

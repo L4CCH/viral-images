@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useRef, useEffect, useMemo } from "react";
-import NextImage from "next/image";
+import { ImageWithFallback } from "@/components/image-with-fallback";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -84,17 +84,13 @@ export function ClusterImages({ cluster, images }: ClusterImagesProps) {
     });
   }, [images]);
 
-  // Reset selection and visible images when cluster/images change
-  useEffect(() => {
-    if (!filteredImages.length) {
-      setSelectedImageIndex(0);
-      setVisibleCount(INITIAL_VISIBLE);
-      return;
-    }
+  // Selection and visible count reset when the cluster changes because the
+  // parent renders this component with key={cluster.id} (fresh state).
 
-    setSelectedImageIndex(0);
-    setVisibleCount(Math.min(INITIAL_VISIBLE, filteredImages.length));
-  }, [cluster?.id, filteredImages.length]);
+  const visibleImages = useMemo(
+    () => filteredImages.slice(0, Math.min(visibleCount, filteredImages.length)),
+    [filteredImages, visibleCount]
+  );
 
   // Scroll to selected image (within rendered thumbnails)
   useEffect(() => {
@@ -157,19 +153,6 @@ export function ClusterImages({ cluster, images }: ClusterImagesProps) {
     }
   };
 
-  const years = filteredImages
-    .map((img: Image) => parseDate(img.date))
-    .filter((d: Date | null): d is Date => !!d)
-    .map((d: Date) => d.getFullYear());
-
-  const startYear = years.length ? Math.min(...years) : undefined;
-  const endYear = years.length ? Math.max(...years) : undefined;
-
-  const visibleImages = useMemo(
-    () => filteredImages.slice(0, Math.min(visibleCount, filteredImages.length)),
-    [filteredImages, visibleCount]
-  );
-
   const handleScroll: React.UIEventHandler<HTMLDivElement> = (event) => {
     const target = event.currentTarget;
     const { scrollLeft, clientWidth, scrollWidth } = target;
@@ -187,10 +170,14 @@ export function ClusterImages({ cluster, images }: ClusterImagesProps) {
     <div className="space-y-6">
       <div className="p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row items-center sm:items-start gap-4">
         {cluster.thumbnail && (
-          <img
+          <ImageWithFallback
             src={cluster.thumbnail}
             alt={`Cluster ${cluster.id} thumbnail`}
+            width={96}
+            height={160}
+            compact
             className="w-24 max-w-[6rem] h-auto aspect-auto rounded border object-cover mb-4 sm:mb-0 sm:mr-4 shrink-0"
+            fallbackClassName="w-24 rounded border mb-4 sm:mb-0 sm:mr-4 shrink-0"
             style={{ maxHeight: "10rem" }}
           />
         )}
@@ -264,15 +251,13 @@ export function ClusterImages({ cluster, images }: ClusterImagesProps) {
                           }`}
                           onClick={() => handleImageSelect(index)}
                         >
-                          <NextImage
-                            src={
-                              image.url ||
-                              "/placeholder.svg"
-                            }
+                          <ImageWithFallback
+                            src={image.url}
                             alt={alt}
                             width={500}
                             height={300}
                             loading="lazy"
+                            fallbackClassName="h-full aspect-auto"
                             className={`w-full h-full object-contain ${
                               !isSelected
                                 ? "group-hover:scale-105 group-hover:shadow-md transition-transform duration-200"
@@ -321,17 +306,15 @@ export function ClusterImages({ cluster, images }: ClusterImagesProps) {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <div className="relative overflow-hidden rounded-lg border flex items-center justify-center">
-                        <NextImage
-                          src={
-                            selectedImage.url ||
-                            "/placeholder.svg"
-                          }
+                        <ImageWithFallback
+                          src={selectedImage.url}
+                          fallbackClassName="min-h-[300px] aspect-auto"
                           alt={`${selectedImage.newspaper} - ${formatDate(
                             selectedImage.date
                           )}`}
                           width={300}
                           height={300}
-                          priority
+                          preload
                           className="object-contain"
                         />
                       </div>
