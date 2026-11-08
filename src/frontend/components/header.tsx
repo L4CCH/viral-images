@@ -18,8 +18,8 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex space-x-6 text-lg">
-          <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
-            About
+          <Link href="https://doi.org/10.48550/arXiv.2606.16209" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+            Paper
           </Link>
           <Link href="/faq" className="text-gray-600 hover:text-gray-900 transition-colors duration-200">
             FAQ
@@ -37,8 +37,8 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[250px] sm:w-[300px]">
               <nav className="flex flex-col gap-4 pt-8">
-                <Link href="/about" className="text-lg font-medium text-gray-700 hover:text-gray-900" onClick={() => setIsOpen(false)}>
-                  About
+                <Link href="https://doi.org/10.48550/arXiv.2606.16209" className="text-lg font-medium text-gray-700 hover:text-gray-900">
+                  Paper
                 </Link>
                 <Link href="/faq" className="text-lg font-medium text-gray-700 hover:text-gray-900" onClick={() => setIsOpen(false)}>
                   FAQ
