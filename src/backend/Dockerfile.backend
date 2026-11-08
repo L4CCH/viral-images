@@ -1,95 +1,80 @@
+# syntax=docker/dockerfile:1
+# Build context: repository root (see docker-compose.yml)
+
+ARG PYTHON_VERSION=3.13
+ARG NODE_VERSION=24
+
 #### Stage 1: Build frontend (Next.js static export)
-FROM node:22-slim AS frontend-builder
+FROM node:${NODE_VERSION}-slim AS frontend-builder
 
 WORKDIR /frontend
+ENV PNPM_HOME=/pnpm \
+    NEXT_TELEMETRY_DISABLED=1
+RUN corepack enable
 
-# Install pnpm and dependencies
-RUN npm install -g pnpm
+# Install deps from the lockfile first (cached unless manifests change)
+COPY src/frontend/package.json src/frontend/pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
-# Copy frontend package manifest and install deps (better cache)
-COPY src/frontend/package.json ./
-RUN pnpm install
-
-# Copy the rest of the frontend source
 COPY src/frontend/ ./
-
-# Build a static export (output configured via next.config.ts)
-RUN pnpm run export
+# output: "export" in next.config.ts writes the static site to /frontend/out
+RUN pnpm build
 
 
 #### Stage 2: Download and preprocess the dataset
-FROM python:3.12-slim AS builder
+FROM python:${PYTHON_VERSION}-slim AS preprocess
+COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /bin/uv
 
-# Install system dependencies for building Python packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set working directory
 WORKDIR /builder
+ENV UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/builder/.venv
 
-# Install only the dependencies needed for preprocessing
-# Using separate RUN for better layer caching
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir \
-    datasets \
-    pandas \
-    pyarrow
+COPY src/backend/pyproject.toml src/backend/uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --only-group preprocess
 
-# Copy only the preprocessing script and its dependencies from backend source
-COPY src/backend/core/ ./core/
-COPY src/backend/requirements.txt ./requirements.txt
+# Copy only the script so app-code changes don't invalidate this stage
+COPY src/backend/core/preprocess_dataset.py ./preprocess_dataset.py
 
-# Set PYTHONPATH so imports work correctly
-ENV PYTHONPATH=/builder
+# Cache Hugging Face downloads across builds (the metadata dataset is large)
+RUN --mount=type=cache,target=/root/.cache/huggingface \
+    .venv/bin/python preprocess_dataset.py && \
+    test -f /builder/processed_dataset.parquet
 
-# Run preprocessing (outputs to processed_dataset.parquet in current directory)
-RUN python core/preprocess_dataset.py || \
-    (echo "Preprocessing failed!" && exit 1)
-
-# Verify the output file was created
-RUN test -f /builder/processed_dataset.parquet || \
-    (echo "Output file not found!" && exit 1)
 
 #### Stage 3: Application runtime
-FROM python:3.12-slim
+FROM python:${PYTHON_VERSION}-slim
+COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /bin/uv
 
-# Clean up apt cache (no additional runtime deps needed for slim image)
-RUN apt-get update && apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
 
-# Create non-root user for security
-RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app /data && \
-    chown -R appuser:appuser /app /data
+RUN useradd --create-home --uid 1000 appuser
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements first for better layer caching
-COPY src/backend/requirements.txt ./requirements.txt
+# Runtime deps only (datasets is in the preprocess group and is not installed)
+COPY src/backend/pyproject.toml src/backend/uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy the preprocessed dataset from builder stage
-COPY --from=builder /builder/processed_dataset.parquet /data/processed_dataset.parquet
-
-# Copy backend application code
+COPY --from=preprocess --chown=appuser:appuser /builder/processed_dataset.parquet /data/processed_dataset.parquet
+COPY --from=frontend-builder --chown=appuser:appuser /frontend/out /app/static
 COPY --chown=appuser:appuser src/backend/ .
 
-# Copy static frontend build from frontend-builder (Next.js export output)
-COPY --from=frontend-builder --chown=appuser:appuser /frontend/out /app/static
-
-# Switch to non-root user
 USER appuser
-
-# Expose the port
 EXPOSE 8000
 
-# Add health check (using root endpoint as health indicator)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" || exit 1
+# /api/ returns dataset metadata, so this also verifies the dataset loaded
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/', timeout=5)"]
 
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Behind a load balancer that terminates HTTPS (e.g. AWS App Runner), trust
+# X-Forwarded-* headers so redirects keep the https scheme. Safe because only
+# the load balancer can reach the task.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

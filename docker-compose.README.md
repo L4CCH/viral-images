@@ -1,121 +1,69 @@
 # Docker Compose Usage Guide
 
-This docker-compose setup allows you to run the backend and frontend services separately or together using **profiles**.
+This docker-compose setup lets you run the backend and frontend services separately or together using **profiles**.
 
 ## Quick Start
 
-### Run Both Services Together
 ```bash
-docker-compose --profile full up
+docker compose --profile backend up --build    # API + static site on :8000
+docker compose --profile frontend up --build   # Next.js dev server on :3000
+docker compose --profile full up --build       # both
 ```
 
-### Run Only Backend
+## Development
+
+### Backend live reload
 ```bash
-docker-compose --profile backend up
+docker compose --profile backend watch
 ```
+Changes under `src/backend/` are synced into the container and the service restarts. A change to `uv.lock` triggers an image rebuild.
 
-### Run Only Frontend
+### Frontend hot reload
+The `frontend` profile mounts `src/frontend/` into the container and runs `next dev`. Set `NEXT_PUBLIC_API_BASE_PATH` (e.g. `http://localhost:8000/api`) in `src/frontend/.env.local`. The file is optional.
+
+## Common commands
 ```bash
-docker-compose --profile frontend up
-```
-
-## Usage Examples
-
-### Development Mode (with hot reload)
-```bash
-# Set DEV_MODE=true in .env file or export it
-export DEV_MODE=true
-docker-compose --profile full up
-```
-
-### Production Mode (without hot reload)
-```bash
-export DEV_MODE=false
-docker-compose --profile full up
-```
-
-### Run in Background (Detached Mode)
-```bash
-docker-compose --profile full up -d
-```
-
-### Stop Services
-```bash
-docker-compose --profile full down
-```
-
-### View Logs
-```bash
-# All services
-docker-compose --profile full logs -f
-
-# Specific service
-docker-compose logs -f backend
-docker-compose logs -f frontend
-```
-
-### Rebuild Services
-```bash
-# Rebuild all
-docker-compose --profile full build
-
-# Rebuild specific service
-docker-compose build backend
-docker-compose build frontend
+docker compose --profile full up -d        # detached
+docker compose --profile full down         # stop
+docker compose logs -f backend             # logs
+docker compose --profile full build        # rebuild images
 ```
 
 ## Environment Variables
 
-Create a `.env` file in the project root (see `.env.example`):
+Set these in a `.env` file in the project root or in your shell:
 
-- `BACKEND_PORT`: Backend API port (default: 8000)
-- `FRONTEND_PORT`: Frontend port (default: 3000)
-- `DEV_MODE`: Enable hot reload for backend (default: false)
-- `NODE_ENV`: Node environment (development/production)
-- `NEXT_PUBLIC_API_URL`: Backend API URL for frontend
+- `BACKEND_PORT`: Host port for the backend (default: 8000)
+- `FRONTEND_PORT`: Host port for the frontend dev server (default: 3000)
 
-## Profiles Explained
+## Profiles
 
-- **`full`**: Runs both backend and frontend
-- **`backend`**: Runs only the backend service
-- **`frontend`**: Runs only the frontend service
+- **`backend`**: FastAPI API plus the statically exported frontend
+- **`frontend`**: Next.js dev server only
+- **`full`**: both services
 
-## Service Details
+## How the backend image is built
 
-### Backend
-- **Port**: 8000 (configurable via `BACKEND_PORT`)
-- **Health Check**: Monitors `/` endpoint
-- **Data**: Parquet file stored in named volume `viral-images-backend-data`
-- **Hot Reload**: Enabled when `DEV_MODE=true`
+`src/backend/Dockerfile.backend` uses the repo root as its build context (filtered by the root `.dockerignore`) and has three stages:
 
-### Frontend
-- **Port**: 3000 (configurable via `FRONTEND_PORT`)
-- **Health Check**: Monitors root endpoint
-- **Hot Reload**: Always enabled in dev mode
-- **Dependencies**: Waits for backend to be healthy (optional)
+1. **frontend-builder** (Node 24, pnpm): installs from `pnpm-lock.yaml` and runs `next build`, which writes a static export.
+2. **preprocess** (Python 3.13, uv): installs the `preprocess` dependency group, downloads the Hugging Face datasets, and writes `processed_dataset.parquet`. Downloads are kept in a BuildKit cache, and this stage reruns only when `pyproject.toml`, `uv.lock` or `core/preprocess_dataset.py` changes.
+3. **runtime**: Python 3.13 with only the runtime dependencies. It runs as a non-root user and serves the API at `/api` and the static site at `/`.
 
-## Network
+The dataset is baked into the image at `/data/processed_dataset.parquet`. No volume is mounted there, so a rebuild always ships the new dataset.
 
-Services communicate via the `viral-images-network` bridge network.
+To force the dataset to be downloaded again, run `docker builder prune --filter type=exec.cachemount` or `docker compose build --no-cache backend`.
 
-## Volumes
+## Health check
 
-- `backend_data`: Persists the processed parquet dataset
-- Frontend code is mounted for development hot reload
+The backend health check calls `GET /api/`. That endpoint returns dataset metadata, so the container is reported healthy only once the dataset has loaded.
 
 ## Troubleshooting
 
-### Backend won't start
-- Check if port 8000 is already in use
-- Verify the parquet file exists in `/data/processed_dataset.parquet`
-- Check logs: `docker-compose logs backend`
+- **Backend won't start:** check whether port 8000 is in use, then check `docker compose logs backend`.
+- **Frontend can't reach the API:** check `NEXT_PUBLIC_API_BASE_PATH` in `src/frontend/.env.local`, then run `curl http://localhost:8000/api/`.
+- **Upgrading from the old setup:** remove the obsolete dataset volume with `docker volume rm viral-images-backend-data`.
 
-### Frontend can't connect to backend
-- Ensure both services are on the same network
-- Check `NEXT_PUBLIC_API_URL` environment variable
-- Verify backend health: `curl http://localhost:8000/`
+## Production
 
-### Volume conflicts
-- The backend volume mount is read-only (`:ro`) to prevent overwriting built files
-- If you need to modify code, rebuild the image instead of mounting volumes
-
+The `backend` image is the same one deployed to AWS App Runner, built for linux/amd64. See [deploy/README.md](deploy/README.md).

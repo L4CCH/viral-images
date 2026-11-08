@@ -14,13 +14,13 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# next.js (patterns must not start with "/", or they only match at the repo root)
+**/.next/
+src/frontend/out/
 dist/
 
 # production
-/build
+**/build/
 
 # misc
 .DS_Store
@@ -49,6 +49,10 @@ __pycache__/
 __marimo__
 venv
 .venv
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
 
 
 # data

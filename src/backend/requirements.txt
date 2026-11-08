@@ -1,6 +1,0 @@
-fastapi
-uvicorn[standard]
-datasets
-pydantic-settings
-pandas
-pyarrow

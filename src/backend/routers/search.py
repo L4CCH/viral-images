@@ -29,7 +29,8 @@ async def get_search_results(
     newspaper_name: Optional[List[str]] = Query(None),
     publisher: Optional[List[str]] = Query(None),
     page: int = 1,
-    limit: int = Query(10, enum=[10, 20, 50, 100]),  # Allow only 10, 20, 50, or 100
+    # Documented as 10/20/50/100 in OpenAPI (not enforced, same as before)
+    limit: int = Query(10, json_schema_extra={"enum": [10, 20, 50, 100]}),
     offset: Optional[int] = Query(None, ge=0),
     order_by: Optional[OrderBy] = None,
     order_direction: OrderDirection = OrderDirection.DESC,

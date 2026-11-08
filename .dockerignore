@@ -1,0 +1,25 @@
+# Build context for src/backend/Dockerfile.backend is the repo root.
+# Keep it small: only src/ is needed.
+.git
+.gitignore
+data/
+scripts/
+*.md
+docker-compose*.yml
+.dockerignore
+
+**/node_modules
+**/.next
+**/out
+**/build
+
+**/__pycache__
+**/*.py[cod]
+**/.venv
+**/.pytest_cache
+
+**/.env
+**/.env.*
+**/.DS_Store
+**/.vscode
+**/.idea

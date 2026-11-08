@@ -3,80 +3,67 @@ services:
     build:
       context: .
       dockerfile: ./src/backend/Dockerfile.backend
+    image: viral-images-backend
     container_name: viral-images-backend
     profiles:
       - backend
-      - full  # Can run with 'full' profile or 'backend' profile
+      - full
     ports:
       - "${BACKEND_PORT:-8000}:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DATA_PATH=/data/processed_dataset.parquet
-    volumes:
-      # Preserve the /data directory from the image
-      - backend_data:/data
+    # The processed dataset is baked into the image at /data. Don't mount a
+    # volume there, or rebuilt images would keep serving the old dataset.
     networks:
       - viral-images-network
     deploy:
       resources:
+        # Mirrors production (App Runner: 0.5 vCPU / 1 GB); the app uses ~330 MiB
         limits:
-          cpus: '4.0'
-          memory: 6G
+          cpus: "1.0"
+          memory: 1G
         reservations:
-          cpus: '2.0'
-          memory: 2G
+          memory: 512M
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    # Use reload only in development
-    command: >
-      sh -c "
-        if [ \"$${DEV_MODE:-false}\" = \"true\" ]; then
-          uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-        else
-          uvicorn main:app --host 0.0.0.0 --port 8000
-        fi
-      "
+    # Live reload during development: `docker compose --profile backend watch`
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./src/backend
+          target: /app
+          ignore:
+            - __pycache__/
+            - .venv/
+            - pyproject.toml
+            - uv.lock
+        - action: rebuild
+          path: ./src/backend/uv.lock
 
   frontend:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile.frontend
+    image: viral-images-frontend-dev
     container_name: viral-images-frontend
     profiles:
-      - frontend  # Dev-only frontend service
+      - frontend
+      - full
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
       - /app/.next
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-      - WATCHPACK_POLLING=true
-      - CHOKIDAR_USEPOLLING=true
+    # Set NEXT_PUBLIC_API_BASE_PATH (e.g. http://localhost:8000/api) here
     env_file:
-      - ./src/frontend/.env.local  # Optional - will be ignored if file doesn't exist
+      - path: ./src/frontend/.env.local
+        required: false
     networks:
       - viral-images-network
     depends_on:
       backend:
         condition: service_healthy
-        required: false  # Allow frontend to start even if backend isn't ready
+        required: false  # Lets the frontend profile start without the backend
     restart: unless-stopped
-    command: pnpm run dev --hostname 0.0.0.0 --port 3000
 
 networks:
   viral-images-network:
-    driver: bridge
     name: viral-images-network
-
-volumes:
-  backend_data:
-    name: viral-images-backend-data
-    # Persist the parquet file between container restarts
