@@ -33,14 +33,9 @@ export default function FAQPage() {
           Viral Images is a research project that investigates how to identify image reprints within
           the digitized newspapers available in Chronicling America, a digital initiave hosted by the Library of Congress.
           The project is developed at the Lab for Computing Cultural Heritage within the School of Information
-          at University of Washington, led by <a href="https://bcglee.github.io/" className={linkClass}>Dr. Ben Lee</a> and
-          researchers <a href="https://sun770311.github.io/" className={linkClass}>Yueran Sun</a> and{" "}
-          <a href="https://bruno.land/" className={linkClass}>Bruno Buccalon</a>.
-
-
-
-
-
+          at University of Washington, led by researchers <a href="https://bruno.land/" className={linkClass}>Bruno Buccalon</a> and{" "}
+          <a href="https://sun770311.github.io/" className={linkClass}>Yueran Sun</a> under
+          the supervision of <a href="https://bcglee.github.io/" className={linkClass}>Dr. Ben Lee</a>.
         </p>
       </div>
 
@@ -69,8 +64,8 @@ export default function FAQPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Are your results publicly available?</h2>
         <p className="text-lg text-gray-700 leading-relaxed">
-          Yes! You can find the CLIP embeddings and the resultig clusters on the Viral Images repository at HuggingFace.
-          The source code of our data analysis as well as our web application is available on GitHub:
+          Yes! Our embeddings and clusters are available on HuggingFace.
+          The source code of our data analysis and web application is available on GitHub:
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-6 text-lg text-gray-700 leading-relaxed marker:text-blue-700 dark:marker:text-blue-400">
           <li>
